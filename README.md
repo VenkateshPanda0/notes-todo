@@ -4,7 +4,7 @@
 
 TaskFlow lets you capture anything — a task or a thought — in one place. You explicitly choose **Todo** or **Note**; nothing is automatically classified.
 
-Built with a React frontend and FastAPI backend, TaskFlow is packaged as a standalone Windows desktop application with local SQLite storage and no separate runtime installation required.
+Built with a React frontend and FastAPI backend, TaskFlow is designed as a local-first Windows desktop application with SQLite persistence and a native `pywebview` shell.
 
 ---
 
@@ -33,19 +33,14 @@ Any item can switch between Todo and Note after creation.
 
 For example:
 
-* A note such as "Investigate X" can become an actionable Todo.
+* A note such as `Investigate X` can become an actionable Todo.
 * A Todo that no longer requires action can be converted into a reference Note.
 
 ### Complete / Reopen
 
 Todos can be completed and reopened at any time.
 
-Completion state persists across the application and is reflected in:
-
-* Active / Completed filters
-* Completed view
-* Calendar
-* Todo lists
+Completion state persists and is reflected across the application's Todo views and calendar.
 
 ### All Tasks
 
@@ -66,11 +61,11 @@ TaskFlow provides automatically filtered Todo views:
 * **Today** — Todos due on the current local date
 * **Upcoming** — Todos due on future dates
 
-Date calculations use the device's **local time**, rather than UTC.
+Date calculations use the device's local date and time rather than assuming UTC.
 
 ### Completed
 
-A dedicated view containing completed Todos independently of the current filter state in the main Todo list.
+A dedicated view containing completed Todos independently of the current filter state.
 
 ### Notes
 
@@ -89,16 +84,16 @@ Tasks are color-coded according to priority.
 The calendar supports:
 
 * Previous / next month navigation
-* Return to the current month
-* Click a Todo to edit it
-* Click an empty day to create a Todo
-* Automatically pre-fill the selected date when creating a Todo
+* Returning to the current month
+* Opening a Todo for editing
+* Creating a Todo from an empty calendar day
+* Automatically pre-filling the selected due date
 
 ### Search
 
 The Todo list includes live search.
 
-Search results are updated as you type and match against:
+Search results update as you type and match against:
 
 * Todo title
 * Todo description
@@ -107,16 +102,11 @@ Search results are updated as you type and match against:
 
 TaskFlow supports an optional local password.
 
-The password is:
-
-* Stored only on the device
-* Stored as a PBKDF2-derived hash
-* Not transmitted to a server
-* Not associated with an online account
+The password is stored on-device as a PBKDF2-derived hash and is not sent to a remote service.
 
 When enabled, TaskFlow displays a lock screen when the application launches.
 
-This is intended as a lightweight local safeguard rather than a full authentication or enterprise security system.
+The app lock is intended as a lightweight local safeguard rather than a full authentication or enterprise security mechanism.
 
 ### Light / Dark / System Theme
 
@@ -126,21 +116,21 @@ TaskFlow supports three appearance modes:
 * **Dark**
 * **System**
 
-System mode automatically follows the operating system's configured appearance preference.
+System mode follows the operating system's configured appearance preference.
 
 ### Local-First Storage
 
-All application data is stored locally in SQLite.
+TaskFlow stores application data locally in SQLite.
 
-No Todo or Note data is sent to an external server.
+Normal Todo and Note data is not sent to an external cloud service.
 
-When packaged as a Windows executable, the database is stored at:
+For packaged Windows builds, the database is stored at:
 
 ```text
 %APPDATA%\TaskFlow\flow.db
 ```
 
-The database is independent of the executable's location, allowing data to persist when the executable is moved or replaced.
+The database is kept separately from the executable so application data can persist independently of the location of `TaskFlow.exe`.
 
 ---
 
@@ -162,7 +152,7 @@ The database is independent of the executable's location, allowing data to persi
 │                    │ HTTP / JSON          │
 │   ┌────────────────▼────────────────┐     │
 │   │          FastAPI backend        │     │
-│   │    Routes → Schemas → Services  │     │
+│   │    API → Schemas → Services     │     │
 │   └────────────────┬────────────────┘     │
 │                    │                      │
 │   ┌────────────────▼────────────────┐     │
@@ -173,35 +163,33 @@ The database is independent of the executable's location, allowing data to persi
 └───────────────────────────────────────────┘
 ```
 
-The application consists of four primary layers:
+The application is organized into four primary layers:
 
-1. **Native shell** — pywebview provides the desktop application window.
+1. **Native shell** — `pywebview` provides the desktop window.
 2. **Frontend** — React + TypeScript provides the user interface.
-3. **Backend** — FastAPI handles application logic and the REST API.
-4. **Database** — SQLAlchemy communicates with the local SQLite database.
+3. **Backend** — FastAPI provides the application API and backend logic.
+4. **Database** — SQLAlchemy provides the ORM layer over SQLite.
 
-The production application bundles the Python runtime, backend, and compiled frontend into a single Windows executable using PyInstaller.
-
-There is no separate server process for the end user. Launching `TaskFlow.exe` starts the application and opens the native desktop window.
+The desktop launcher starts the local backend and loads the compiled frontend into the native window.
 
 ---
 
 ## Technology Stack
 
-| Layer                | Technology              |
-| -------------------- | ----------------------- |
-| UI shell             | pywebview               |
-| Desktop runtime      | Microsoft Edge WebView2 |
-| Frontend             | React                   |
-| Language             | TypeScript              |
-| Build tool           | Vite                    |
-| Styling              | Tailwind CSS            |
-| Backend              | FastAPI                 |
-| API validation       | Pydantic                |
-| ORM / database layer | SQLAlchemy              |
-| Database             | SQLite                  |
-| Packaging            | PyInstaller             |
-| Platform             | Windows 10 / 11         |
+| Layer           | Technology              |
+| --------------- | ----------------------- |
+| UI shell        | pywebview               |
+| Desktop runtime | Microsoft Edge WebView2 |
+| Frontend        | React                   |
+| Language        | TypeScript              |
+| Build tool      | Vite                    |
+| Styling         | Tailwind CSS            |
+| Backend         | FastAPI                 |
+| Validation      | Pydantic                |
+| ORM             | SQLAlchemy              |
+| Storage         | SQLite                  |
+| Packaging       | PyInstaller             |
+| Target platform | Windows                 |
 
 ---
 
@@ -210,30 +198,85 @@ There is no separate server process for the end user. Launching `TaskFlow.exe` s
 ```text
 TaskFlow/
 │
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   └── types/
-│   ├── package.json
-│   └── vite.config.ts
+├── .env.example
+├── .gitignore
+├── LICENSE
+├── README.md
 │
 ├── backend/
 │   ├── app/
 │   │   ├── api/
-│   │   ├── schemas/
-│   │   ├── services/
+│   │   │   ├── auth.py
+│   │   │   ├── deps.py
+│   │   │   └── items.py
+│   │   │
+│   │   ├── db/
+│   │   │   ├── base.py
+│   │   │   └── session.py
+│   │   │
 │   │   ├── models/
-│   │   └── db/
+│   │   │   ├── app_settings.py
+│   │   │   └── item.py
+│   │   │
+│   │   ├── schemas/
+│   │   │   ├── auth.py
+│   │   │   └── item.py
+│   │   │
+│   │   ├── services/
+│   │   │   ├── auth.py
+│   │   │   └── items.py
+│   │   │
+│   │   └── main.py
+│   │
 │   ├── tests/
+│   │   ├── conftest.py
+│   │   ├── test_auth_api.py
+│   │   ├── test_database.py
+│   │   ├── test_health.py
+│   │   └── test_items_api.py
+│   │
 │   ├── launcher.py
 │   └── requirements.txt
 │
-├── docs/
-├── LICENSE
-└── README.md
+└── frontend/
+    ├── public/
+    │   ├── favicon.svg
+    │   └── icons.svg
+    │
+    ├── src/
+    │   ├── api/
+    │   │   └── client.ts
+    │   │
+    │   ├── components/
+    │   │   ├── Button.tsx
+    │   │   ├── Input.tsx
+    │   │   ├── PriorityBadge.tsx
+    │   │   ├── Sidebar.tsx
+    │   │   ├── TaskModal.tsx
+    │   │   └── TaskRow.tsx
+    │   │
+    │   ├── contexts/
+    │   │   ├── LockContext.tsx
+    │   │   └── ThemeContext.tsx
+    │   │
+    │   ├── pages/
+    │   │   ├── CalendarView.tsx
+    │   │   ├── Dashboard.tsx
+    │   │   ├── LockScreen.tsx
+    │   │   └── Settings.tsx
+    │   │
+    │   ├── types/
+    │   │   └── item.ts
+    │   │
+    │   ├── App.tsx
+    │   ├── index.css
+    │   └── main.tsx
+    │
+    ├── index.html
+    ├── package.json
+    ├── package-lock.json
+    ├── vite.config.ts
+    └── tsconfig*.json
 ```
 
 ---
@@ -244,13 +287,13 @@ TaskFlow/
 
 For development, install:
 
-* Python 3.10+
+* Python
 * Node.js
 * npm
 * Git
 * Microsoft Edge WebView2
 
-The packaged application does not require Python or Node.js to be installed separately.
+The packaged Windows executable does not require Python or Node.js to be installed separately.
 
 ---
 
@@ -270,15 +313,20 @@ This starts the Vite development server.
 
 ### Backend
 
-Create and activate a Python virtual environment:
+Create a Python virtual environment:
 
 ```bash
 cd backend
 python -m venv .venv
+```
+
+Activate it on Windows:
+
+```bash
 .venv\Scripts\activate
 ```
 
-Install the backend dependencies:
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
@@ -294,24 +342,24 @@ uvicorn app.main:app --reload
 
 ## Running Tests
 
-Run the backend test suite with:
+The backend includes tests for API, authentication, database, health-check, and item functionality.
+
+Run the complete backend test suite with:
 
 ```bash
 cd backend
 python -m pytest tests -v
 ```
 
-The test suite covers the application's backend behavior, including API and database functionality.
-
 ---
 
 ## Building the Windows Executable
 
-The production executable is created using **PyInstaller**.
-
-Run the following commands from the repository root.
+TaskFlow can be packaged into a standalone Windows executable using PyInstaller.
 
 ### 1. Build the frontend
+
+From the repository root:
 
 ```bash
 cd frontend
@@ -320,7 +368,7 @@ npm run build
 cd ..
 ```
 
-This creates the production frontend bundle in:
+This generates the production frontend bundle in:
 
 ```text
 frontend/dist/
@@ -335,7 +383,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-### 3. Build TaskFlow.exe
+### 3. Build the executable
 
 If an application icon is available:
 
@@ -343,131 +391,121 @@ If an application icon is available:
 pyinstaller --name TaskFlow --onefile --windowed --icon taskflow.ico --add-data "../frontend/dist;frontend/dist" launcher.py
 ```
 
-If no icon is available:
+Without an icon:
 
 ```bash
 pyinstaller --name TaskFlow --onefile --windowed --add-data "../frontend/dist;frontend/dist" launcher.py
 ```
 
-The resulting executable will be located at:
+The resulting executable is created at:
 
 ```text
 backend/dist/TaskFlow.exe
 ```
 
-The packaged application contains:
-
-* Python runtime
-* FastAPI backend
-* Backend dependencies
-* Built React frontend
-* Application launcher
-
-The end user does not need to install Python or Node.js separately.
+The packaged executable contains the application runtime, backend, and compiled frontend needed to launch TaskFlow as a desktop application.
 
 ---
 
 ## Application Data
 
-TaskFlow stores persistent application data in:
+TaskFlow keeps persistent application data outside the executable.
+
+The SQLite database is stored at:
 
 ```text
 %APPDATA%\TaskFlow\flow.db
 ```
 
-This location is intentionally separate from the executable.
+This means the database is independent of the location of `TaskFlow.exe`.
 
-Therefore:
+For example:
 
 ```text
 TaskFlow.exe
-     │
-     └── Application data
-          └── %APPDATA%\TaskFlow\flow.db
+      │
+      └── Application data
+            └── %APPDATA%\TaskFlow\flow.db
 ```
 
-Moving the executable does not move or delete the database.
+Moving the executable does not by itself move the application database.
 
 ---
 
 ## First Run
 
-Because locally built TaskFlow executables are not code-signed, Windows SmartScreen may display a warning when the application is launched.
+Unsigned locally built Windows executables may trigger a Microsoft Defender SmartScreen warning.
 
-Windows may display:
+You may see:
 
 > Windows protected your PC
 
-If you trust the executable you built, select:
+For an executable that you built and trust, Windows provides:
 
 **More info → Run anyway**
 
-A production release distributed publicly should ideally use a properly configured code-signing certificate.
+Public releases should ideally be distributed with appropriate code signing.
 
 ---
 
 ## Privacy
 
-TaskFlow follows a local-first architecture.
+TaskFlow is designed around local-first data storage.
 
-Normal application data is stored locally in SQLite rather than being sent to a remote service.
+Normal application data is stored in the local SQLite database rather than a hosted cloud database.
 
-The application does not require:
+The application is designed to operate without:
 
 * An online account
 * A cloud database
-* A hosted backend
+* A separately hosted backend
 * Internet connectivity for normal local operation
 
-Todos, Notes, and application state remain on the local machine.
+The local database remains on the user's machine.
 
 ---
 
 ## Design Philosophy
 
-TaskFlow intentionally keeps its interaction model simple.
+TaskFlow is intentionally designed around a small set of predictable interactions.
 
 ### Explicit over automatic
 
-The user decides whether something is a Todo or a Note.
+The user decides whether an item is a Todo or a Note.
 
-TaskFlow does not attempt to infer intent using:
-
-* AI classification
-* Natural-language classification
-* Automatic categorization
+TaskFlow does not automatically classify captured content.
 
 ### Local over cloud
 
-The application is designed around local persistence rather than mandatory cloud synchronization.
+The application prioritizes local persistence instead of requiring an online account or cloud synchronization service.
 
 ### Minimal over feature-heavy
 
-TaskFlow focuses on the core workflow:
+The core workflow is:
 
 ```text
 Capture → Organize → Act
 ```
 
-without requiring a large project-management system.
+TaskFlow focuses on this workflow without attempting to become a full project-management platform.
 
 ---
 
 ## Roadmap
 
-Potential future improvements may include:
+Possible future improvements include:
 
 * [ ] Keyboard shortcuts
-* [ ] Drag-and-drop Todo organization
 * [ ] Recurring Todos
-* [ ] Todo categories / tags
+* [ ] Todo tags or categories
 * [ ] Database backup and restore
 * [ ] Import / export
-* [ ] Improved calendar interactions
-* [ ] Application update mechanism
+* [ ] Drag-and-drop organization
+* [ ] Additional calendar interactions
+* [ ] Automatic application updates
 * [ ] Signed Windows releases
 
-The roadmap is subject to change as the project evolves.
+The roadmap may change as the project evolves.
 
 ---
 
