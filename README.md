@@ -47,6 +47,12 @@ python -m pytest backend/tests
 }
 ```
 
+## Current backend foundation
+
+The backend uses SQLAlchemy with SQLite by default. The `Item` model stores a user-selected `TODO` or `NOTE` type; Flow does not infer the type automatically.
+
+Set `DATABASE_URL` to use a different database URL later. The model and session setup intentionally keep the database layer separate from future API routes.
+
 ## Next milestone
 
-Add the minimum database configuration and the initial unified `Item` model, keeping todos and notes explicitly selected by the user.
+Add validated API schemas and creation/retrieval endpoints for explicitly chosen items.
