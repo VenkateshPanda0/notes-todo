@@ -26,3 +26,7 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 outputs/ 
+frontend/dist/ 
+backend/build/ 
+backend/dist/ 
+backend/*.spec 
