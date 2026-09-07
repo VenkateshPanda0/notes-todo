@@ -12,32 +12,31 @@ Built with **React + TypeScript**, **FastAPI**, **SQLAlchemy**, and **SQLite**, 
 
 ### All Tasks
 
-![All Tasks](docs/screenshots/all-tasks.png)
+![All Tasks](screenshots/all-tasks.jpg)
 
 ### Today
 
-![Today](docs/screenshots/today.png)
+![Today](screenshots/today.jpg)
 
 ### Upcoming
 
-![Upcoming](docs/screenshots/upcoming.png)
+![Upcoming](screenshots/upcoming.jpg)
 
 ### Completed
 
-![Completed](docs/screenshots/completed.png)
+![Completed](screenshots/completed.jpg)
 
 ### Calendar
 
-![Calendar](docs/screenshots/calendar.png)
+![Calendar](screenshots/calendar.jpg)
 
 ### Settings
 
-![Settings](docs/screenshots/settings.png)
+![Settings](screenshots/settings.jpg)
 
 ### App Lock
 
-![App Lock](docs/screenshots/lock-screen.png)
-
+![App Lock](screenshots/app-lock.jpg)
 ---
 
 ## Features
