@@ -1,3 +1,4 @@
-﻿from .item import Item, ItemType
+from .app_settings import AppSettings
+from .item import Item, ItemType, Priority
 
-__all__ = ["Item", "ItemType"]
+__all__ = ["Item", "ItemType", "Priority", "AppSettings"]

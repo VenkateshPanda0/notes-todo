@@ -19,6 +19,8 @@ def create_item(db: Session, payload: ItemCreate) -> Item:
         title=payload.title,
         content=payload.content,
         item_type=payload.item_type,
+        priority=payload.priority,
+        due_date=payload.due_date,
     )
     db.add(item)
     db.commit()

@@ -1,1 +1,1 @@
-﻿"""Database configuration for Flow."""
+"""Database configuration for Flow."""

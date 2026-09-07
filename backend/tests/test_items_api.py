@@ -219,3 +219,52 @@ def test_convert_missing_id_returns_404(client):
     response = client.post("/api/items/999999/convert")
 
     assert response.status_code == 404
+
+
+# --- Priority and due date -----------------------------------------------
+
+
+def test_create_item_with_priority_and_due_date(client):
+    response = client.post(
+        "/api/items",
+        json={
+            "title": "Finish report",
+            "type": "TODO",
+            "priority": "HIGH",
+            "due_date": "2026-10-12",
+        },
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["priority"] == "HIGH"
+    assert body["due_date"] == "2026-10-12"
+
+
+def test_create_item_without_priority_defaults_to_medium(client):
+    item = create_todo(client)
+
+    assert item["priority"] == "MEDIUM"
+    assert item["due_date"] is None
+
+
+def test_create_item_invalid_priority_is_validation_error(client):
+    response = client.post(
+        "/api/items", json={"title": "X", "type": "TODO", "priority": "URGENT"}
+    )
+
+    assert response.status_code == 422
+
+
+def test_update_item_priority_and_due_date(client):
+    created = create_todo(client)
+
+    response = client.patch(
+        f"/api/items/{created['id']}",
+        json={"priority": "LOW", "due_date": "2026-11-01"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["priority"] == "LOW"
+    assert body["due_date"] == "2026-11-01"

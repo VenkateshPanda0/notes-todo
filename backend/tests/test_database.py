@@ -18,7 +18,9 @@ def test_item_defaults_and_explicit_type_are_persisted() -> None:
 
     with database_engine.begin() as connection:
         connection.execute(
-            Item.__table__.insert().values(title="Finish DBMS Lab 4", type=ItemType.TODO)
+            Item.__table__.insert().values(
+                title="Finish DBMS Lab 4", type=ItemType.TODO
+            )
         )
         item = connection.execute(Item.__table__.select()).one()
 

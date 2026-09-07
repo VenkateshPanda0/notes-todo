@@ -1,7 +1,7 @@
-﻿from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from enum import Enum
 
-from sqlalchemy import Boolean, DateTime, Enum as SqlEnum, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Enum as SqlEnum, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..db.base import Base
@@ -16,6 +16,12 @@ class ItemType(str, Enum):
     NOTE = "NOTE"
 
 
+class Priority(str, Enum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+
+
 class Item(Base):
     """A user-created item explicitly classified as a todo or note."""
 
@@ -28,6 +34,10 @@ class Item(Base):
         "type", SqlEnum(ItemType, name="item_type"), nullable=False
     )
     completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    priority: Mapped[Priority] = mapped_column(
+        SqlEnum(Priority, name="priority"), default=Priority.MEDIUM, nullable=False
+    )
+    due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
