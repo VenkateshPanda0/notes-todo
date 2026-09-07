@@ -3,3 +3,7 @@ uvicorn[standard]>=0.30,<1.0
 pytest>=8.0,<9.0
 httpx>=0.27,<1.0
 sqlalchemy>=2.0,<3.0
+
+# --- Packaging (only needed to build the .exe, not to run the dev server) ---
+pyinstaller>=6.0,<7.0
+pywebview>=6.0,<7.0

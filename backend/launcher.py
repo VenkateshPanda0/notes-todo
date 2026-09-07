@@ -1,17 +1,23 @@
 import threading
-import time
-import webbrowser
 
 import uvicorn
+import webview
 
 from app.main import app
 
 
-def open_browser():
-    time.sleep(1.5)  # give uvicorn a moment to start listening
-    webbrowser.open("http://127.0.0.1:8000")
+def run_server():
+    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
 
 
 if __name__ == "__main__":
-    threading.Thread(target=open_browser, daemon=True).start()
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    threading.Thread(target=run_server, daemon=True).start()
+
+    webview.create_window(
+        "TaskFlow",
+        "http://127.0.0.1:8000",
+        width=1100,
+        height=750,
+        min_size=(700, 500),
+    )
+    webview.start()
