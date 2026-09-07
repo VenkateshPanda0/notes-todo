@@ -1,4 +1,4 @@
-import os
+﻿import os
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import sessionmaker
@@ -17,7 +17,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_database(database_engine: Engine | None = None) -> None:
     """Create the current schema for a supplied engine or the local database."""
-    # Import models before reading metadata so their tables are registered.
     from ..models import Item  # noqa: F401
 
     Base.metadata.create_all(bind=database_engine or engine)

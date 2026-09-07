@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from .api.items import router as items_router
 from .db.session import init_database
 
 
@@ -24,3 +25,6 @@ app = FastAPI(
 def health_check() -> dict[str, str]:
     """Return service health for local checks and deployment probes."""
     return {"status": "ok"}
+
+
+app.include_router(items_router)
