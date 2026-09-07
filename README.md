@@ -2,822 +2,269 @@
 
 ### A fast, simple workspace for everything you need to remember.
 
-Flow is a lightweight personal productivity application that combines **Todos and Notes into a single capture-first workspace**.
-
-Instead of maintaining separate apps for things you need to do and things you simply want to remember, Flow gives you one place to write everything down.
-
-You decide what it is.
+Flow (branded **TaskFlow** in the UI) is a lightweight personal productivity
+app that combines Todos and Notes into a single capture-first workspace.
+Instead of separate apps for tasks and things you want to remember, Flow
+gives you one place to write everything down — you decide what it is.
 
 > **Write → Choose Todo or Note → Save → Organize**
-
-Flow intentionally keeps this decision explicit. The application does **not** attempt to guess whether something is a task or a note.
 
 ---
 
 ## Current Status
 
-> **Development Status: Milestone 1 — Foundation**
-
-The project is currently establishing its backend architecture and development workflow.
+> **Development Status: Frontend complete, packaging in progress**
 
 ### Implemented
 
-* FastAPI backend
-* Health-check endpoint
-* Backend test structure
-* Project documentation
-* Python dependency management
-* Initial repository structure
+- FastAPI backend with SQLite persistence (via SQLAlchemy)
+- Unified `Item` model (Todo or Note), with priority, due dates, completion
+- Full CRUD API: create, list (filterable), get, update, delete
+- Todo completion / reopening
+- Todo ↔ Note conversion
+- Local app-password lock (PBKDF2-hashed, no accounts/OAuth — nothing
+  sensitive is stored, so a simple local lock was chosen over full auth)
+- React + TypeScript + Vite + Tailwind frontend
+  - Dashboard with search, All/Active/Completed filters
+  - Today / Upcoming / Completed / **Notes** sidebar views
+  - **Calendar view** — monthly grid showing Todos by due date, click a day
+    to add a task, click a task to edit it
+  - Add/Edit task modal with Todo/Note toggle, priority, due date
+  - Light / Dark / System theme
+  - Settings — app lock setup, theme
 
 ### Coming Next
 
-* SQLite database
-* SQLAlchemy integration
-* Unified `Item` model
-* Todo creation and management
-* Note creation and management
-* React + TypeScript frontend
-* Search and filtering
-* Priorities and due dates
-* Todo ↔ Note conversion
+- PyInstaller packaging into a standalone Windows `.exe`
+- Tags, sorting, global search across Notes
+- Dashboard section polish
 
 ---
 
-# Why Flow?
+## Why Flow?
 
-Most productivity applications force you to decide how to organize information before you capture it.
-
-Flow is designed around a simpler interaction:
-
-```text
-                 ┌─────────────────┐
-                 │  I need to      │
-                 │  write something │
-                 └────────┬────────┘
-                          │
-                          ▼
-                 ┌─────────────────┐
-                 │  Capture it     │
-                 └────────┬────────┘
-                          │
-                    ┌─────┴─────┐
-                    ▼           ▼
-                 TODO          NOTE
-                    │           │
-                    └─────┬─────┘
-                          ▼
-                    Flow Workspace
-```
-
-There is no automatic classification in the core application.
-
-If you write:
-
-> Finish DBMS Lab 4 tomorrow
-
-you can explicitly select **Todo**.
-
-If you write:
-
-> Idea: investigate memory-based malware detection for UAV companion computers
-
-you can explicitly select **Note**.
-
-The application handles the organization. **You control the meaning.**
+Most productivity apps force you to decide how to organize information
+before you capture it. Flow keeps that decision explicit — there's no
+automatic classification. You write something down, then choose Todo or
+Note. The app doesn't guess.
 
 ---
 
-# Core Concept
+## Architecture
 
-Flow revolves around a single concept:
-
-## Items
-
-Everything captured by the user is an `Item`.
-
-An item has a type:
-
-```text
-TODO
-NOTE
 ```
-
-Conceptually:
-
-```text
-Item
-├── id
-├── title
-├── content
-├── type
-├── completed
-├── priority
-├── due_date
-├── created_at
-└── updated_at
-```
-
-The initial implementation intentionally starts with a smaller data model and expands it incrementally.
-
----
-
-# Planned Features
-
-## Todo Management
-
-Create and manage tasks from the same capture interface.
-
-Planned functionality:
-
-* Create Todo
-* Edit Todo
-* Delete Todo
-* Complete Todo
-* Reopen Todo
-* Priorities
-* Due dates
-* Tags
-* Filtering
-
-Example:
-
-```text
-☐ Finish DBMS Lab 4
-
-Priority: High
-Due: Tomorrow
-Tag: University
-```
-
----
-
-## Notes
-
-Keep information, ideas, references, research, and thoughts without treating them as tasks.
-
-Example:
-
-```text
-UAV Malware Research
-
-Investigate whether memory-based behavioral detection
-could identify malicious activity on UAV companion computers.
-```
-
-Planned functionality:
-
-* Create Note
-* Edit Note
-* Delete Note
-* Search Notes
-* Tags
-* Timestamps
-
----
-
-## Todo ↔ Note Conversion
-
-An item should not be permanently locked into one type.
-
-A Note can become a Todo:
-
-```text
-NOTE
-
-Research PostgreSQL indexing
-        ↓
-[ Convert to Todo ]
-        ↓
-TODO
-
-☐ Research PostgreSQL indexing
-```
-
-Likewise, a Todo can become a Note.
-
-This keeps the workspace flexible as priorities change.
-
----
-
-## Search
-
-Flow will eventually provide a unified search across:
-
-* Todos
-* Notes
-* Tags
-* Content
-* Titles
-
-For example:
-
-```text
-Search: postgres
-```
-
-could return:
-
-```text
-TODO
-☐ Review PostgreSQL indexing
-
-NOTE
-PostgreSQL MVCC Notes
-
-TODO
-Build PostgreSQL test database
-```
-
-The initial search implementation will use conventional database/text search.
-
----
-
-## Filtering
-
-Planned filters include:
-
-```text
-All
-Todos
-Notes
-Pending
-Completed
-```
-
-Additional filters can include:
-
-* Priority
-* Tags
-* Due date
-* Creation date
-
----
-
-# Product Principles
-
-Flow is intentionally built around a few principles.
-
-### 1. Capture First
-
-Writing something down should require minimal interaction.
-
-### 2. Explicit Classification
-
-The user decides whether something is a Todo or Note.
-
-The initial version does not use AI to make this decision.
-
-### 3. Minimal Interface
-
-The application should remain focused on capturing and organizing information rather than becoming an overloaded productivity suite.
-
-### 4. Local First
-
-The initial version is designed to work locally with a lightweight SQLite database.
-
-The architecture will allow PostgreSQL and cloud synchronization to be introduced later.
-
-### 5. Incremental Engineering
-
-Flow is being developed feature-by-feature rather than generated as one large application.
-
-Each major feature should be independently implemented, tested, reviewed, and committed.
-
----
-
-# Architecture
-
-The planned architecture separates the frontend, API, business logic, and persistence layers.
-
-```text
 ┌──────────────────────────────────────────────┐
 │                    Browser                   │
-│                                              │
 │            React + TypeScript                │
 └──────────────────────┬───────────────────────┘
-                       │
                        │ HTTP / JSON
                        ▼
 ┌──────────────────────────────────────────────┐
 │                  FastAPI                     │
-│                                              │
 │  API Routes → Schemas → Services             │
 └──────────────────────┬───────────────────────┘
-                       │
                        ▼
 ┌──────────────────────────────────────────────┐
 │                 SQLAlchemy                   │
-│                                              │
-│                 Data Layer                   │
 └──────────────────────┬───────────────────────┘
-                       │
                        ▼
 ┌──────────────────────────────────────────────┐
 │                   SQLite                     │
-│                                              │
-│              Local Persistence               │
 └──────────────────────────────────────────────┘
 ```
 
-The frontend communicates with the backend through the API rather than accessing the database directly.
+## Technology Stack
 
-This keeps the system modular and makes future changes to the persistence layer easier.
-
----
-
-# Technology Stack
-
-## Backend
-
-| Technology | Purpose               |
-| ---------- | --------------------- |
-| Python     | Backend language      |
-| FastAPI    | REST API framework    |
-| Pydantic   | Data validation       |
-| SQLAlchemy | ORM / database access |
-| SQLite     | Initial database      |
-| pytest     | Backend testing       |
-
-## Frontend
-
-| Technology   | Purpose                        |
-| ------------ | ------------------------------ |
-| React        | UI framework                   |
-| TypeScript   | Type-safe frontend development |
-| Vite         | Frontend build tooling         |
-| Tailwind CSS | UI styling                     |
-| Vitest       | Frontend testing               |
-
-The frontend stack will be introduced in a later milestone.
+| Layer    | Technology                                  |
+| -------- | -------------------------------------------- |
+| Backend  | Python, FastAPI, Pydantic, SQLAlchemy, SQLite, pytest |
+| Frontend | React, TypeScript, Vite, Tailwind CSS        |
+| Packaging| PyInstaller (bundles frontend + backend into one `.exe`) |
 
 ---
 
-# Repository Structure
+## Getting Started (development)
 
-Current repository:
+### Prerequisites
 
-```text
-flow/
-│
-├── backend/
-│   ├── app/
-│   │   └── main.py
-│   │
-│   ├── tests/
-│   │
-│   └── requirements.txt
-│
-├── frontend/
-│   └── ...
-│
-├── .gitignore
-└── README.md
+- Python 3.11+
+- Node.js 18+
+- Git
+
+### Clone
+
+```
+git clone https://github.com/VenkateshPanda0/notes-todo.git
+cd notes-todo
 ```
 
-As the application develops, the structure is expected to evolve toward:
+### Backend
 
-```text
-flow/
-│
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   ├── core/
-│   │   ├── db/
-│   │   ├── models/
-│   │   ├── schemas/
-│   │   ├── services/
-│   │   └── main.py
-│   │
-│   ├── tests/
-│   └── requirements.txt
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── types/
-│   │   └── utils/
-│   │
-│   ├── package.json
-│   └── ...
-│
-├── .gitignore
-└── README.md
 ```
-
-The architecture will evolve as functionality is introduced rather than being over-engineered from the beginning.
-
----
-
-# Getting Started
-
-## Prerequisites
-
-* Python 3.11+
-* Git
-
-Node.js will be required once the React frontend is introduced.
-
----
-
-## Clone the Repository
-
-```bash
-git clone <repository-url>
-cd flow
-```
-
----
-
-## Backend Setup
-
-Create a virtual environment:
-
-```bash
 python -m venv .venv
-```
-
-### Windows
-
-```bash
-.venv\Scripts\activate
-```
-
-### Linux / macOS
-
-```bash
-source .venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
+.venv\Scripts\activate          # Windows
 python -m pip install -r backend/requirements.txt
-```
-
----
-
-# Run the Backend
-
-Start the FastAPI development server:
-
-```bash
 uvicorn app.main:app --app-dir backend --reload
 ```
 
-The server will be available at:
+Backend runs at `http://127.0.0.1:8000`.
 
-```text
-http://127.0.0.1:8000
+### Frontend
+
+In a separate terminal:
+
+```
+cd frontend
+npm install
+npm run dev
 ```
 
----
+Frontend runs at `http://localhost:5173` and talks to the backend above.
 
-# API
+### Tests
 
-## Health Check
-
-### `GET /health`
-
-Returns the current health status of the backend.
-
-Example response:
-
-```json
-{
-  "status": "ok"
-}
 ```
-
-The health endpoint is intentionally minimal in Milestone 1.
-
-Additional API endpoints will be introduced as application functionality is implemented.
-
----
-
-# Testing
-
-Run the backend test suite:
-
-```bash
 python -m pytest backend/tests
 ```
 
-Tests are developed alongside functionality rather than being deferred until the end of the project.
-
 ---
 
-# Development Workflow
+## Packaging into a Windows .exe
 
-Flow is being developed incrementally.
+The goal: a single double-clickable `.exe` that runs the whole app (React
+UI + FastAPI backend + SQLite) with no separate `npm`/`uvicorn` steps —
+FastAPI serves the built React app directly, and PyInstaller bundles
+everything, including the Python interpreter, into one executable.
 
-A typical feature follows this workflow:
+### Step 1 — Build the React frontend to static files
 
-```text
-Requirement
-     ↓
-Design
-     ↓
-Implementation
-     ↓
-Tests
-     ↓
-Review
-     ↓
-Git Commit
-     ↓
-Next Feature
+```
+cd frontend
+npm run build
 ```
 
-Each meaningful feature should have a focused Git commit.
+This produces `frontend/dist/` — plain HTML/CSS/JS, no dev server needed.
 
-Example:
+### Step 2 — Serve the built frontend from FastAPI
 
-```text
-Initial Flow project setup
-Create FastAPI application
-Add health endpoint
-Add database configuration
-Create Item model
-Add Todo creation endpoint
-Add Note creation endpoint
-Add item retrieval endpoint
-Add Todo completion
-Add React application
-Build dashboard
-Connect frontend to API
-Add search
+In `backend/app/main.py`, mount the built frontend as static files so
+FastAPI serves both the API and the UI from one process:
+
+```python
+from fastapi.staticfiles import StaticFiles
+import os
+
+FRONTEND_DIST = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")
+
+app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="frontend")
 ```
 
-The Git history is intended to document the evolution of the application.
+Mount this **after** your `/api/...` routers are registered, so API routes
+still take priority over the static file fallback.
 
----
+### Step 3 — Write a launcher script
 
-# Development Roadmap
+Create `backend/launcher.py`:
 
-## Milestone 1 — Foundation
+```python
+import threading
+import time
+import webbrowser
 
-**Status: In Progress**
+import uvicorn
 
-* [x] Repository structure
-* [x] Backend setup
-* [x] FastAPI application
-* [x] Health endpoint
-* [x] Backend test structure
-* [x] Initial documentation
+from app.main import app
 
----
+def open_browser():
+    time.sleep(1.5)  # give uvicorn a moment to start
+    webbrowser.open("http://127.0.0.1:8000")
 
-## Milestone 2 — Persistence
-
-**Status: Planned**
-
-* [ ] SQLite configuration
-* [ ] SQLAlchemy integration
-* [ ] Database initialization
-* [ ] Initial `Item` model
-* [ ] Database tests
-
----
-
-## Milestone 3 — Todo API
-
-**Status: Planned**
-
-* [ ] Todo creation
-* [ ] Todo retrieval
-* [ ] Todo editing
-* [ ] Todo deletion
-* [ ] Todo completion
-* [ ] Todo reopening
-* [ ] API validation
-* [ ] Backend tests
-
----
-
-## Milestone 4 — Notes API
-
-**Status: Planned**
-
-* [ ] Note creation
-* [ ] Note retrieval
-* [ ] Note editing
-* [ ] Note deletion
-* [ ] Note search
-* [ ] Backend tests
-
----
-
-## Milestone 5 — Frontend
-
-**Status: Planned**
-
-* [ ] React + TypeScript setup
-* [ ] Application shell
-* [ ] Dashboard
-* [ ] Capture interface
-* [ ] Todo interface
-* [ ] Notes interface
-* [ ] API integration
-* [ ] Loading states
-* [ ] Error states
-* [ ] Responsive design
-
----
-
-## Milestone 6 — Organization
-
-**Status: Planned**
-
-* [ ] Search
-* [ ] Filtering
-* [ ] Priorities
-* [ ] Due dates
-* [ ] Tags
-* [ ] Sorting
-* [ ] Completed Todo section
-
----
-
-## Milestone 7 — Productivity Features
-
-**Status: Planned**
-
-* [ ] Todo ↔ Note conversion
-* [ ] Keyboard shortcuts
-* [ ] Pinning
-* [ ] Archiving
-* [ ] Recently updated items
-* [ ] Improved dashboard organization
-
----
-
-## Milestone 8 — Intelligence
-
-**Status: Future**
-
-AI is deliberately excluded from the initial application.
-
-Potential future capabilities include:
-
-* Note summarization
-* Automatic tag suggestions
-* Date extraction
-* Converting notes into multiple Todos
-* Semantic search
-* Natural-language queries
-
-These features will only be considered after the deterministic core application is stable.
-
----
-
-# Design Direction
-
-The final interface should feel like a **personal workspace**, not a complicated enterprise project-management platform.
-
-The primary interaction should remain:
-
-```text
-             ┌──────────────────┐
-             │ Write something   │
-             └────────┬─────────┘
-                      │
-              ┌───────┴───────┐
-              ▼               ▼
-           ✓ TODO           NOTE
-              │               │
-              └───────┬───────┘
-                      ▼
-                    FLOW
+if __name__ == "__main__":
+    threading.Thread(target=open_browser, daemon=True).start()
+    uvicorn.run(app, host="127.0.0.1", port=8000)
 ```
 
-The interface should prioritize:
+This starts the server and opens the user's default browser to it —
+no visible terminal workflow needed once packaged.
 
-* speed
-* clarity
-* readability
-* minimal interaction
-* keyboard accessibility
-* responsive design
+### Step 4 — Install PyInstaller
 
----
-
-# Non-Goals
-
-Flow is not intended to initially become:
-
-* a full project-management platform
-* a team collaboration tool
-* an AI assistant
-* a calendar replacement
-* a chat application
-* a complex knowledge-management system
-
-The initial goal is much simpler:
-
-> **Give one person a fast place to capture and organize Todos and Notes.**
-
----
-
-# Future Possibilities
-
-Once the core application is stable, Flow could evolve into a broader personal information system.
-
-Possible future directions:
-
-```text
-                FLOW
-                  │
-       ┌──────────┼──────────┐
-       │          │          │
-     Todos      Notes      Search
-       │          │          │
-       └──────────┼──────────┘
-                  │
-              Intelligence
-                  │
-       ┌──────────┼──────────┐
-       │          │          │
-    Semantic    AI        Analytics
-     Search   Features     & Insights
+```
+pip install pyinstaller
 ```
 
-Potential long-term capabilities include:
+### Step 5 — Build the executable
 
-* Cross-device synchronization
-* PostgreSQL
-* Authentication
-* Cloud deployment
-* PWA / mobile support
-* Attachments
-* Markdown notes
-* Semantic search
-* AI-assisted organization
-* Natural-language interaction
+From the `backend/` directory:
 
-These are deliberately outside the scope of the first version.
-
----
-
-# Engineering Goals
-
-Flow is also a software-engineering learning project.
-
-The project aims to demonstrate practical experience with:
-
-* REST API design
-* Backend architecture
-* Database modeling
-* ORM usage
-* Type-safe frontend development
-* Automated testing
-* Git workflows
-* GitHub development
-* API integration
-* Error handling
-* Responsive UI design
-* Incremental feature development
-* Technical documentation
-
-The goal is not simply to produce an application.
-
-The goal is to build it properly.
-
----
-
-# License
-
-License information will be added before the first public release.
-
----
-
-# Project Status
-
-**Flow is currently under active development.**
-
-The current release represents the initial backend foundation. Features described in the roadmap are planned and may change as the application evolves.
-
----
-
-## Built Incrementally
-
-Flow is intentionally being developed one feature at a time, with each meaningful change tested and tracked through Git.
-
-```text
-Plan
- ↓
-Build
- ↓
-Test
- ↓
-Review
- ↓
-Commit
- ↓
-Repeat
+```
+pyinstaller --name TaskFlow --onefile --add-data "../frontend/dist;frontend/dist" launcher.py
 ```
 
-**Flow — capture it now. Organize it your way.**
+- `--onefile` bundles everything into a single `.exe`
+- `--add-data "SRC;DEST"` bundles the built frontend files into the package
+  (note the `;` separator — that's Windows-specific; use `:` on macOS/Linux)
+- If you mounted `FRONTEND_DIST` with a relative path in Step 2, you'll
+  need to adjust it to use `sys._MEIPASS` when running from a PyInstaller
+  bundle, since bundled apps unpack to a temp folder at runtime:
+
+```python
+import sys
+import os
+
+if getattr(sys, "_MEIPASS", None):
+    FRONTEND_DIST = os.path.join(sys._MEIPASS, "frontend", "dist")
+else:
+    FRONTEND_DIST = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")
+```
+
+The output `.exe` lands in `backend/dist/TaskFlow.exe`.
+
+### Step 6 — Test on a clean profile
+
+Copy `TaskFlow.exe` somewhere outside your dev folder (e.g. Desktop) and
+run it directly — this catches path assumptions that only work because
+you're inside the project directory. Confirm:
+- the browser opens automatically
+- tasks/notes persist between runs (SQLite file location matters here —
+  by default it may try to write next to the `.exe`; consider pointing it
+  at a user-writable location like `%APPDATA%\TaskFlow\flow.db` instead)
+- the app lock still works
+
+### Known packaging gotchas
+
+- **SQLite file path**: if your `DATABASE_URL` is a relative path, it'll
+  resolve relative to wherever the `.exe` is run from — not the project
+  folder. Pin it explicitly, ideally to `%APPDATA%`.
+- **CORS**: once frontend and backend are served from the same origin
+  (`127.0.0.1:8000` for both), you can drop the `localhost:5173` CORS
+  exception used in development.
+- **Antivirus false positives**: PyInstaller `--onefile` binaries are
+  commonly flagged by Windows Defender/SmartScreen on first run since
+  they're unsigned and self-extracting. This is expected for an unsigned
+  student project `.exe` — not a sign something's broken.
+
+---
+
+## Development Workflow
+
+Flow is built incrementally — one feature at a time, tested and committed.
+
+```
+Requirement → Design → Implementation → Tests → Review → Git Commit → Next Feature
+```
+
+---
+
+## Non-Goals
+
+Flow is not intended to become a full project-management platform, a team
+collaboration tool, an AI assistant, or a calendar replacement (the
+Calendar view here is for visualizing your own due dates, not external
+calendar integration).
+
+---
+
+## License
+
+MIT
