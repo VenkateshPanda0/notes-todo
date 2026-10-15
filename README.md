@@ -4,6 +4,10 @@
 
 TaskFlow lets you capture anything — a task or a thought — in one place. You explicitly choose **Todo** or **Note**; nothing is automatically classified.
 
+> **Your tasks and notes, entirely on your machine.** No account. No cloud. No tracking.
+
+[Website](https://venkateshpanda0.github.io/notes-todo/) · [Download](https://github.com/VenkateshPanda0/notes-todo/releases) · [Contributing](CONTRIBUTING.md) · [Roadmap](#roadmap)
+
 Built with **React + TypeScript**, **FastAPI**, **SQLAlchemy**, and **SQLite**, TaskFlow is packaged as a standalone Windows desktop application using **pywebview** and **PyInstaller**.
 
 ---
@@ -122,6 +126,7 @@ The launcher starts the local backend and loads the compiled frontend into the n
 TaskFlow/
 ├── LICENSE
 ├── README.md
+├── CONTRIBUTING.md
 ├── .env.example
 ├── .gitignore
 │
@@ -158,15 +163,10 @@ TaskFlow/
 │   ├── vite.config.ts
 │   └── tsconfig*.json
 │
-└── docs/
-    └── screenshots/
-        ├── all-tasks.png
-        ├── today.png
-        ├── upcoming.png
-        ├── completed.png
-        ├── calendar.png
-        ├── settings.png
-        └── lock-screen.png
+├── screenshots/        # README images
+└── docs/               # Landing page (GitHub Pages)
+    ├── index.html
+    └── assets/
 ```
 
 ---
@@ -211,8 +211,8 @@ uvicorn app.main:app --reload
 The backend includes tests for API functionality, authentication, database behavior, health checks, and item operations.
 
 ```bash
-cd backend
-python -m pytest tests -v
+# from the repository root
+python -m pytest backend/tests -v
 ```
 
 ---
@@ -364,15 +364,24 @@ TaskFlow focuses on this workflow rather than becoming a full project-management
 
 ## Roadmap
 
+**Next**
+- [ ] Enforced App Lock (session tokens) and encrypted database
+- [ ] Quick capture: global hotkey and natural-language dates
+- [ ] Database backup & restore, import / export
 - [ ] Keyboard shortcuts
-- [ ] Recurring Todos
-- [ ] Todo tags / categories
-- [ ] Database backup & restore
-- [ ] Import / export
-- [ ] Drag-and-drop organization
-- [ ] Additional calendar interactions
-- [ ] Automatic updates
-- [ ] Signed Windows releases
+
+**Soon**
+- [ ] Markdown notes with tags and note ↔ todo links
+- [ ] Recurring Todos and desktop reminders
+- [ ] Database migrations (Alembic)
+
+**Later**
+- [ ] macOS and Linux builds
+- [ ] On-device AI (summaries, semantic search) — local only
+- [ ] Optional end-to-end encrypted sync
+- [ ] Automatic updates and signed Windows releases
+
+Have an idea? [Open an issue](https://github.com/VenkateshPanda0/notes-todo/issues/new/choose). See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
 
 ---
 

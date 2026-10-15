@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaskFlow – Local-first todos and notes</title>
+<meta name="description" content="TaskFlow is a fast, private desktop app for todos and notes. No account, no cloud, your data stays on your machine.">
+<meta property="og:title" content="TaskFlow – Local-first todos and notes">
+<meta property="og:description" content="A fast, private desktop app for todos and notes. No account, no cloud.">
+<meta property="og:image" content="assets/all-tasks.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0b0c10; --panel:#13151b; --line:#232632; --text:#e8eaf0; --muted:#9aa1b2;
+  --accent:#2563eb; --accent-2:#60a5fa;
+}
+:root[data-theme="light"]{
+  --bg:#ffffff; --panel:#f5f6f9; --line:#e3e5ec; --text:#14161c; --muted:#5b6275;
+  --accent:#2563eb; --accent-2:#1d4ed8;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#ffffff; --panel:#f5f6f9; --line:#e3e5ec; --text:#14161c; --muted:#5b6275; --accent-2:#1d4ed8;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent-2);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--text)}
+.logo{width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center}
+.logo svg{width:16px;height:16px}
+nav .links{display:flex;gap:20px;align-items:center;font-size:15px}
+nav .links a{color:var(--muted)}
+nav .links a:hover{color:var(--text);text-decoration:none}
+.hero{text-align:center;padding:64px 0 40px}
+.pill{display:inline-block;border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;padding:4px 14px;font-size:13px}
+h1{font-size:clamp(2.2rem,6vw,3.8rem);line-height:1.1;margin:20px 0 16px;letter-spacing:-.02em}
+h1 span{background:linear-gradient(90deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{max-width:620px;margin:0 auto 28px;color:var(--muted);font-size:1.15rem}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-block;padding:11px 22px;border-radius:10px;font-weight:600;border:1px solid var(--line);color:var(--text);background:var(--panel)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:hover{text-decoration:none;filter:brightness(1.1)}
+.shot{margin:44px auto 0;max-width:960px;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -30px rgba(37,99,235,.35)}
+.shot img{display:block;width:100%;height:auto}
+section{padding:64px 0}
+h2{font-size:clamp(1.6rem,4vw,2.2rem);margin:0 0 8px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 32px;max-width:640px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+.card h3{margin:0 0 6px;font-size:1.05rem}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.gallery figure{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.gallery img{display:block;width:100%;height:auto}
+.gallery figcaption{padding:10px 14px;color:var(--muted);font-size:.9rem}
+.road{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.road li{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.tag{flex:none;font-size:12px;border-radius:6px;padding:2px 8px;border:1px solid var(--line);color:var(--muted);margin-top:2px}
+.tag.now{color:#34d399;border-color:#34d39955}
+.tag.next{color:var(--accent-2);border-color:#60a5fa55}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto;font-size:.9rem}
+footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-size:.9rem;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="brand" href="#">
+      <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l5 5L19 7"/></svg></span>
+      TaskFlow
+    </a>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="https://github.com/VenkateshPanda0/notes-todo">GitHub</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <span class="pill">Free &amp; open source · MIT</span>
+    <h1>Todos and notes,<br><span>entirely on your machine.</span></h1>
+    <p class="lead">TaskFlow is a fast desktop app for the things you need to do and the things you need to remember. No account, no cloud, no tracking. Just a local database you own.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/VenkateshPanda0/notes-todo/releases">Download for Windows</a>
+      <a class="btn" href="https://github.com/VenkateshPanda0/notes-todo">View on GitHub</a>
+    </div>
+    <div class="shot"><img src="assets/all-tasks.jpg" alt="TaskFlow showing a list of tasks with priorities and due dates" width="1100" height="619"></div>
+  </header>
+
+  <section id="features">
+    <h2>Everything you need, nothing you don't</h2>
+    <p class="sub">Capture, organize, act. You choose whether something is a Todo or a Note, so nothing gets guessed or reshuffled behind your back.</p>
+    <div class="grid">
+      <div class="card"><h3>Local-first</h3><p>Your data lives in a SQLite file on your computer. It works offline and needs no sign-up.</p></div>
+      <div class="card"><h3>Todos &amp; Notes</h3><p>Priorities and due dates for todos, free-form notes for reference. Convert between them any time.</p></div>
+      <div class="card"><h3>Smart views</h3><p>All Tasks, Today, Upcoming, Completed and Notes, with live search and filters.</p></div>
+      <div class="card"><h3>Calendar</h3><p>A monthly calendar with priority indicators. Click a day to add a todo due on it.</p></div>
+      <div class="card"><h3>App lock</h3><p>Optional password screen with PBKDF2 hashing, to keep casual snoopers out.</p></div>
+      <div class="card"><h3>Light &amp; dark</h3><p>Follows your system theme, or pick one yourself.</p></div>
+    </div>
+  </section>
+
+  <section id="screens">
+    <h2>A closer look</h2>
+    <p class="sub">A clean, quick layout that stays out of your way.</p>
+    <div class="gallery">
+      <figure><img loading="lazy" src="assets/today.jpg" alt="Today view"><figcaption>Today: what's due right now</figcaption></figure>
+      <figure><img loading="lazy" src="assets/calendar.jpg" alt="Calendar view"><figcaption>Calendar: plan the month</figcaption></figure>
+      <figure><img loading="lazy" src="assets/upcoming.jpg" alt="Upcoming view"><figcaption>Upcoming: see what's ahead</figcaption></figure>
+      <figure><img loading="lazy" src="assets/settings.jpg" alt="Settings"><figcaption>Settings: theme and app lock</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="roadmap">
+    <h2>Where it's going</h2>
+    <p class="sub">TaskFlow is young. Here's the direction, in rough priority order. Ideas and votes are welcome in the issue tracker.</p>
+    <ul class="road">
+      <li><span class="tag now">Next</span><div><strong>Real encryption &amp; enforced lock.</strong> Encrypt the database and require a session for API access.</div></li>
+      <li><span class="tag now">Next</span><div><strong>Quick capture.</strong> Global hotkey and natural-language dates ("call dentist next Tuesday").</div></li>
+      <li><span class="tag next">Soon</span><div><strong>Markdown notes</strong> with tags and links between notes and todos.</div></li>
+      <li><span class="tag next">Soon</span><div><strong>Recurring tasks and reminders</strong> with desktop notifications.</div></li>
+      <li><span class="tag">Later</span><div><strong>On-device AI</strong> for summaries and semantic search. It runs locally, never in the cloud.</div></li>
+      <li><span class="tag">Later</span><div><strong>macOS &amp; Linux builds</strong>, import/export, and optional end-to-end encrypted sync.</div></li>
+    </ul>
+  </section>
+
+  <section id="run">
+    <h2>Run it from source</h2>
+    <p class="sub">Python 3 and Node.js are only needed to develop or build. The packaged app needs neither.</p>
+<pre><code>git clone https://github.com/VenkateshPanda0/notes-todo
+cd notes-todo/frontend &amp;&amp; npm install &amp;&amp; npm run dev
+
+# in a second terminal
+cd notes-todo/backend
+python -m venv .venv &amp;&amp; source .venv/bin/activate   # .venv\Scripts\activate on Windows
+pip install -r requirements.txt
+uvicorn app.main:app --reload</code></pre>
+  </section>
+</div>
+<footer>
+  <div class="wrap">TaskFlow is MIT licensed · Made by <a href="https://github.com/VenkateshPanda0">Venkatesh Panda</a> · <a href="https://github.com/VenkateshPanda0/notes-todo/issues">Share feedback</a></div>
+</footer>
+</body>
+</html>
