@@ -5,9 +5,11 @@ from ..models.item import ItemType
 from ..schemas.item import ItemCreate, ItemRead, ItemUpdate
 from ..services import items as items_service
 from ..services.items import ItemNotFoundError
-from .deps import get_db
+from .deps import get_db, require_unlocked
 
-router = APIRouter(prefix="/api/items", tags=["items"])
+router = APIRouter(
+    prefix="/api/items", tags=["items"], dependencies=[Depends(require_unlocked)]
+)
 
 
 @router.post("", response_model=ItemRead, status_code=201)

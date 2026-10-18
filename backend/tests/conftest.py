@@ -7,6 +7,15 @@ from sqlalchemy.pool import StaticPool
 from backend.app.api.deps import get_db
 from backend.app.db.session import init_database
 from backend.app.main import app
+from backend.app.services import session as session_service
+
+
+@pytest.fixture(autouse=True)
+def reset_session_state():
+    """Session tokens and attempt counters are process-wide, so isolate every test."""
+    session_service.reset()
+    yield
+    session_service.reset()
 
 
 @pytest.fixture()

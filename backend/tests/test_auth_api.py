@@ -9,7 +9,8 @@ def test_setup_password_then_status_reports_locked(client):
     setup = client.post("/api/auth/setup", json={"password": "secret1"})
     status = client.get("/api/auth/status")
 
-    assert setup.status_code == 204
+    assert setup.status_code == 200
+    assert setup.json()["token"]
     assert status.json() == {"is_locked": True}
 
 
@@ -26,7 +27,8 @@ def test_unlock_with_correct_password_succeeds(client):
 
     response = client.post("/api/auth/unlock", json={"password": "secret1"})
 
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json()["token"]
 
 
 def test_unlock_with_incorrect_password_fails(client):
@@ -44,29 +46,32 @@ def test_unlock_with_no_password_configured_fails(client):
 
 
 def test_change_password_with_correct_current_password(client):
-    client.post("/api/auth/setup", json={"password": "secret1"})
+    token = client.post("/api/auth/setup", json={"password": "secret1"}).json()["token"]
 
     response = client.post(
         "/api/auth/change-password",
         json={"current_password": "secret1", "new_password": "secret2"},
+        headers={"Authorization": f"Bearer {token}"},
     )
     unlock_new = client.post("/api/auth/unlock", json={"password": "secret2"})
     unlock_old = client.post("/api/auth/unlock", json={"password": "secret1"})
 
-    assert response.status_code == 204
-    assert unlock_new.status_code == 204
+    assert response.status_code == 200
+    assert unlock_new.status_code == 200
     assert unlock_old.status_code == 401
 
 
 def test_change_password_with_incorrect_current_password_fails(client):
-    client.post("/api/auth/setup", json={"password": "secret1"})
+    token = client.post("/api/auth/setup", json={"password": "secret1"}).json()["token"]
 
     response = client.post(
         "/api/auth/change-password",
         json={"current_password": "wrong", "new_password": "secret2"},
+        headers={"Authorization": f"Bearer {token}"},
     )
 
     assert response.status_code == 401
+    assert response.json()["detail"] == "Incorrect current password"
 
 
 def test_change_password_with_no_password_configured_fails(client):

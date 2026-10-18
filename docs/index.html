@@ -101,7 +101,7 @@ footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-s
       <div class="card"><h3>Todos &amp; Notes</h3><p>Priorities and due dates for todos, free-form notes for reference. Convert between them any time.</p></div>
       <div class="card"><h3>Smart views</h3><p>All Tasks, Today, Upcoming, Completed and Notes, with live search and filters.</p></div>
       <div class="card"><h3>Calendar</h3><p>A monthly calendar with priority indicators. Click a day to add a todo due on it.</p></div>
-      <div class="card"><h3>App lock</h3><p>Optional password screen with PBKDF2 hashing, to keep casual snoopers out.</p></div>
+      <div class="card"><h3>App lock</h3><p>Optional password lock with PBKDF2 hashing and a token-protected local API, to keep casual snoopers out.</p></div>
       <div class="card"><h3>Light &amp; dark</h3><p>Follows your system theme, or pick one yourself.</p></div>
     </div>
   </section>
@@ -121,7 +121,7 @@ footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-s
     <h2>Where it's going</h2>
     <p class="sub">TaskFlow is young. Here's the direction, in rough priority order. Ideas and votes are welcome in the issue tracker.</p>
     <ul class="road">
-      <li><span class="tag now">Next</span><div><strong>Real encryption &amp; enforced lock.</strong> Encrypt the database and require a session for API access.</div></li>
+      <li><span class="tag now">Next</span><div><strong>Encrypted database.</strong> The app lock now guards the API with session tokens; next is encrypting the data file at rest.</div></li>
       <li><span class="tag now">Next</span><div><strong>Quick capture.</strong> Global hotkey and natural-language dates ("call dentist next Tuesday").</div></li>
       <li><span class="tag next">Soon</span><div><strong>Markdown notes</strong> with tags and links between notes and todos.</div></li>
       <li><span class="tag next">Soon</span><div><strong>Recurring tasks and reminders</strong> with desktop notifications.</div></li>

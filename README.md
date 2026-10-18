@@ -334,9 +334,9 @@ TaskFlow is designed to operate locally without:
 
 Todo and Note data remains in the local SQLite database.
 
-The optional App Lock stores the password as a **PBKDF2-derived hash** on the device rather than as plaintext.
+The optional App Lock stores the password as a **PBKDF2-derived hash** on the device rather than as plaintext. When a lock is set, the local API requires a short-lived, in-memory **session token** (issued on unlock, revoked on lock or password change), and repeated wrong passwords are temporarily blocked.
 
-> App Lock is intended as a lightweight local safeguard and should not be considered enterprise-grade authentication or encryption.
+> **The database file itself is not encrypted yet.** App Lock keeps other apps and casual snoopers out of the running application, but anyone with access to your user account can still read `flow.db` directly. Encrypting the database is on the roadmap. Don't rely on App Lock for sensitive data until then.
 
 ---
 
@@ -365,7 +365,8 @@ TaskFlow focuses on this workflow rather than becoming a full project-management
 ## Roadmap
 
 **Next**
-- [ ] Enforced App Lock (session tokens) and encrypted database
+- [x] Enforced App Lock (session tokens, brute-force throttling)
+- [ ] Encrypted database at rest
 - [ ] Quick capture: global hotkey and natural-language dates
 - [ ] Database backup & restore, import / export
 - [ ] Keyboard shortcuts

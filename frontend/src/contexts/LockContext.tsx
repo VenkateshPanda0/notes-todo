@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { authApi } from "../api/client";
+import { authApi, setUnauthorizedHandler } from "../api/client";
 
 interface LockContextValue {
   loading: boolean;
@@ -35,6 +35,11 @@ export function LockProvider({ children }: { children: ReactNode }) {
     refreshStatus();
   }, []);
 
+  useEffect(() => {
+    setUnauthorizedHandler(() => setUnlocked(false));
+    return () => setUnauthorizedHandler(null);
+  }, []);
+
   const setupPassword = async (password: string) => {
     await authApi.setup(password);
     setHasPassword(true);
@@ -51,6 +56,8 @@ export function LockProvider({ children }: { children: ReactNode }) {
   };
 
   const lockAgain = () => {
+    // Revoke the server-side session; lock the UI even if the request fails.
+    authApi.lock().catch(() => {});
     setUnlocked(false);
   };
 

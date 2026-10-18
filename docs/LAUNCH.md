@@ -15,7 +15,7 @@ A checklist and ready-to-edit copy for taking TaskFlow public. Nothing here is p
 
 ## 2. Be honest about the lock
 
-The App Lock is currently a UI privacy screen, not encryption. Say so in launch posts (the README already does). Shipping enforced locking + an encrypted DB is the best first follow-up release and makes a good "v0.2" story.
+The App Lock now enforces access to the local API with session tokens, but the SQLite file is **not encrypted at rest** yet. Say so in launch posts (the README already does). Shipping database encryption is the best follow-up release and makes a good "v0.2" story.
 
 ## 3. Launch copy
 

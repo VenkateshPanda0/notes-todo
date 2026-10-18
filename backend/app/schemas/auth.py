@@ -24,3 +24,9 @@ class ChangePasswordRequest(BaseModel):
 
     current_password: str
     new_password: str = Field(min_length=4, max_length=255)
+
+
+class SessionToken(BaseModel):
+    """A session token returned after a successful setup, unlock or password change."""
+
+    token: str

@@ -2,11 +2,26 @@ import type { Item, ItemCreatePayload, ItemUpdatePayload } from "../types/item";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
+// The session token lives in memory only: closing the app locks it again, and
+// nothing sensitive is written to localStorage.
+let sessionToken: string | null = null;
+let unauthorizedHandler: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  unauthorizedHandler = handler;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (sessionToken) headers.Authorization = `Bearer ${sessionToken}`;
+
+  const response = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+
+  if (response.status === 401 && !path.startsWith("/api/auth/")) {
+    // The session expired or was revoked: send the user back to the lock screen.
+    sessionToken = null;
+    unauthorizedHandler?.();
+  }
 
   if (!response.ok) {
     let detail = response.statusText;
@@ -31,23 +46,31 @@ export interface LockStatus {
   is_locked: boolean;
 }
 
+interface SessionToken {
+  token: string;
+}
+
+async function startSession(path: string, body: object): Promise<void> {
+  const { token } = await request<SessionToken>(path, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  sessionToken = token;
+}
+
 export const authApi = {
   status: () => request<LockStatus>("/api/auth/status"),
-  setup: (password: string) =>
-    request<void>("/api/auth/setup", {
-      method: "POST",
-      body: JSON.stringify({ password }),
-    }),
-  unlock: (password: string) =>
-    request<void>("/api/auth/unlock", {
-      method: "POST",
-      body: JSON.stringify({ password }),
-    }),
+  setup: (password: string) => startSession("/api/auth/setup", { password }),
+  unlock: (password: string) => startSession("/api/auth/unlock", { password }),
   changePassword: (current_password: string, new_password: string) =>
-    request<void>("/api/auth/change-password", {
-      method: "POST",
-      body: JSON.stringify({ current_password, new_password }),
-    }),
+    startSession("/api/auth/change-password", { current_password, new_password }),
+  lock: async () => {
+    try {
+      await request<void>("/api/auth/lock", { method: "POST" });
+    } finally {
+      sessionToken = null;
+    }
+  },
 };
 
 // --- Items -------------------------------------------------------------
