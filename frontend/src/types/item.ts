@@ -9,6 +9,7 @@ export interface Item {
   completed: boolean;
   priority: Priority;
   due_date: string | null;
+  tags: string[];
   created_at: string;
   updated_at: string;
 }
@@ -19,6 +20,7 @@ export interface ItemCreatePayload {
   type: ItemType;
   priority?: Priority;
   due_date?: string | null;
+  tags?: string[];
 }
 
 export interface ItemUpdatePayload {
@@ -28,6 +30,7 @@ export interface ItemUpdatePayload {
   completed?: boolean;
   priority?: Priority;
   due_date?: string | null;
+  tags?: string[];
 }
 
 export interface QuickAddPreview {
@@ -35,4 +38,5 @@ export interface QuickAddPreview {
   type: ItemType;
   priority: Priority;
   due_date: string | null;
+  tags: string[];
 }

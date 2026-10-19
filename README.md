@@ -24,6 +24,14 @@ Type naturally and see how it's understood before you press Enter.
 
 ![Quick Add](screenshots/quick-add.png)
 
+### Markdown Notes & Links
+
+Write notes in Markdown, link them together with `[[Title]]`, and see what links back.
+
+![Markdown notes with wiki-links](screenshots/notes-markdown.png)
+
+![Backlinks](screenshots/backlinks.png)
+
 ### Today
 
 ![Today](screenshots/today.jpg)
@@ -52,6 +60,9 @@ Type naturally and see how it's understood before you press Enter.
 ## Features
 
 - **Quick Add** — type `call dentist next friday !high` and TaskFlow fills in the title, due date, and priority. See [Quick Add syntax](#quick-add-syntax).
+- **Markdown notes** — headings, lists, code, tables and task lists, with a Write / Preview toggle. Output is sanitized, so pasted HTML can't run scripts.
+- **Linked notes** — `[[Title]]` or `[[Title|label]]` links any note or todo to another. A **Linked from** panel shows backlinks, and clicking a link to a title that doesn't exist yet creates that note.
+- **Tags** — add `#tags` to any item, then filter by tag with one click. Quick Add understands them too.
 - **Keyboard shortcuts** — `/` focuses Quick Add, `n` opens the full task form, `Esc` closes it.
 - **Todos & Notes** — explicitly choose the item type.
 - **Title & Description** — optional descriptions for both.
@@ -86,9 +97,10 @@ The Quick Add bar at the top of each view understands a small, predictable set o
 | `in 3 days`, `in 2 weeks` | Due that many days/weeks from now |
 | `dec 25`, `25th of december`, `2026-12-25` | Due that date (rolls to next year if it has passed) |
 | `!high`, `!med`, `!low` (or `!h`, `!m`, `!l`) | Priority |
+| `#work`, `#ideas` | Tags (must start with a letter, so `#123` stays plain text) |
 | `note: ...` | Creates a Note instead of a Todo (dates are left in the text) |
 
-Example: `call dentist next friday !high` → Todo "call dentist", due next Friday, High priority.
+Example: `call dentist next friday !high #errands` → Todo "call dentist", due next Friday, High priority, tagged `errands`.
 
 Short weekday forms that are also everyday words (`mon`, `wed`, `sat`, `sun`) are intentionally not recognized, so a title like "sat on the chair" is left alone.
 
@@ -401,9 +413,10 @@ TaskFlow focuses on this workflow rather than becoming a full project-management
 - [x] Basic keyboard shortcuts (`/`, `n`, `Esc`); more to come
 
 **Soon**
-- [ ] Markdown notes with tags and note ↔ todo links
+- [x] Markdown notes, tags, and note ↔ todo links with backlinks
+- [ ] Graph view of linked notes
 - [ ] Recurring Todos and desktop reminders
-- [ ] Database migrations (Alembic)
+- [x] Versioned database migrations (existing databases upgrade in place)
 
 **Later**
 - [ ] macOS and Linux builds

@@ -81,15 +81,17 @@ export const authApi = {
 // --- Items -------------------------------------------------------------
 
 export const itemsApi = {
-  list: (params?: { type?: string; completed?: boolean }) => {
+  list: (params?: { type?: string; completed?: boolean; tag?: string }) => {
     const search = new URLSearchParams();
     if (params?.type) search.set("type", params.type);
     if (params?.completed !== undefined)
       search.set("completed", String(params.completed));
+    if (params?.tag) search.set("tag", params.tag);
     const qs = search.toString();
     return request<Item[]>(`/api/items${qs ? `?${qs}` : ""}`);
   },
   get: (id: number) => request<Item>(`/api/items/${id}`),
+  backlinks: (id: number) => request<Item[]>(`/api/items/${id}/backlinks`),
   parse: (text: string) =>
     request<QuickAddPreview>("/api/items/parse", {
       method: "POST",

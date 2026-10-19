@@ -5,6 +5,7 @@ import { Input } from "../components/Input";
 import { QuickAdd } from "../components/QuickAdd";
 import { TaskModal } from "../components/TaskModal";
 import { TaskRow } from "../components/TaskRow";
+import { normalizeTitle } from "../lib/markdown";
 import type { Item, ItemType, Priority } from "../types/item";
 
 type Filter = "all" | "active" | "completed";
@@ -36,6 +37,7 @@ export function Dashboard({ view = "all" }: DashboardProps) {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
+  const [activeTag, setActiveTag] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
 
@@ -82,6 +84,21 @@ export function Dashboard({ view = "all" }: DashboardProps) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [modalOpen]);
 
+  // Tags in use among the items this view is about (notes, or todos), with counts.
+  const tagCounts = useMemo(() => {
+    const wanted = view === "notes" ? "NOTE" : "TODO";
+    const counts = new Map<string, number>();
+    for (const item of items) {
+      if (item.type !== wanted) continue;
+      for (const tag of item.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [items, view]);
+
+  // A selected tag that no longer exists (e.g. its last item was retagged) stops filtering.
+  const effectiveTag =
+    activeTag && tagCounts.some(([tag]) => tag === activeTag) ? activeTag : null;
+
   const filtered = useMemo(() => {
     let result = items;
 
@@ -103,6 +120,10 @@ export function Dashboard({ view = "all" }: DashboardProps) {
       }
     }
 
+    if (effectiveTag) {
+      result = result.filter((i) => i.tags.includes(effectiveTag));
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -113,7 +134,12 @@ export function Dashboard({ view = "all" }: DashboardProps) {
     }
 
     return result;
-  }, [items, view, filter, search]);
+  }, [items, view, filter, search, effectiveTag]);
+
+  const knownTitles = useMemo(
+    () => new Set(items.map((i) => normalizeTitle(i.title))),
+    [items],
+  );
 
   const title =
     view === "today"
@@ -149,6 +175,7 @@ export function Dashboard({ view = "all" }: DashboardProps) {
     type: ItemType;
     priority: Priority;
     due_date: string | null;
+    tags: string[];
   }) => {
     if (editingItem) {
       let updated = await itemsApi.update(editingItem.id, data);
@@ -160,6 +187,23 @@ export function Dashboard({ view = "all" }: DashboardProps) {
       const created = await itemsApi.create(data);
       setItems((prev) => [created, ...prev]);
     }
+  };
+
+  // Follow a [[link]]: open the item with that title, or create a note for it if none exists.
+  const handleOpenLink = async (linkTitle: string) => {
+    const target = normalizeTitle(linkTitle);
+    let found = items.find((i) => normalizeTitle(i.title) === target);
+    if (!found) {
+      try {
+        found = await itemsApi.create({ title: linkTitle.trim(), type: "NOTE" });
+        const created = found;
+        setItems((prev) => [created, ...prev]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not create note.");
+        return;
+      }
+    }
+    setEditingItem(found);
   };
 
   const handleDelete = async () => {
@@ -190,6 +234,32 @@ export function Dashboard({ view = "all" }: DashboardProps) {
         placeholder="Search tasks..."
         className="mb-4"
       />
+
+      {tagCounts.length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-2" aria-label="Filter by tag">
+          {tagCounts.map(([tag, count]) => (
+            <button
+              key={tag}
+              onClick={() => setActiveTag(effectiveTag === tag ? null : tag)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                effectiveTag === tag
+                  ? "bg-primary text-white"
+                  : "bg-primary/10 text-primary hover:bg-primary/20"
+              }`}
+            >
+              #{tag} <span className="opacity-70">{count}</span>
+            </button>
+          ))}
+          {effectiveTag && (
+            <button
+              onClick={() => setActiveTag(null)}
+              className="text-xs text-[var(--text-secondary)] underline"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
 
       {view === "all" && (
         <div className="mb-4 flex gap-2">
@@ -238,6 +308,9 @@ export function Dashboard({ view = "all" }: DashboardProps) {
         open={modalOpen}
         initial={editingItem}
         defaultType={view === "notes" ? "NOTE" : "TODO"}
+        knownTitles={knownTitles}
+        onOpenLink={handleOpenLink}
+        onOpenItem={(item) => setEditingItem(item)}
         onClose={() => setModalOpen(false)}
         onSave={handleSave}
         onDelete={editingItem ? handleDelete : undefined}

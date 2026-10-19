@@ -117,6 +117,7 @@ export function CalendarView() {
     type: ItemType;
     priority: Priority;
     due_date: string | null;
+    tags: string[];
   }) => {
     if (editingItem) {
       let updated = await itemsApi.update(editingItem.id, data);

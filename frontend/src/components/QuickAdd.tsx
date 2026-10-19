@@ -66,6 +66,7 @@ export function QuickAdd({ defaultType, onCreated, inputRef }: QuickAddProps) {
         type: parsed.type,
         priority: parsed.priority,
         due_date: parsed.due_date,
+        tags: parsed.tags,
       });
       onCreated(created);
       setText("");
@@ -93,7 +94,7 @@ export function QuickAdd({ defaultType, onCreated, inputRef }: QuickAddProps) {
         placeholder={
           defaultType === "NOTE"
             ? 'Quick add a note…  (press "/" to focus)'
-            : 'Quick add…  try "call dentist tomorrow !high"  (press "/" to focus)'
+            : 'Quick add…  try "call dentist tomorrow !high #errands"  (press "/" to focus)'
         }
         aria-label="Quick add"
         className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-primary"
@@ -111,6 +112,11 @@ export function QuickAdd({ defaultType, onCreated, inputRef }: QuickAddProps) {
               Due {formatDate(shown.due_date)}
             </span>
           )}
+          {shown.tags.map((tag) => (
+            <span key={tag} className="rounded-full bg-primary/10 px-2.5 py-0.5 font-medium text-primary">
+              #{tag}
+            </span>
+          ))}
           <span className="ml-auto">Enter to add</span>
         </div>
       )}

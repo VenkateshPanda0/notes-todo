@@ -13,6 +13,12 @@ function formatDate(dateStr: string | null): string | null {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+// First non-empty line of a note, with the most common Markdown markers removed.
+function snippet(content: string): string {
+  const line = content.split("\n").find((l) => l.trim()) ?? "";
+  return line.replace(/^[#>*\-\s]+/, "").replace(/[*_`]/g, "").trim();
+}
+
 export function TaskRow({ item, onToggleComplete, onClick }: TaskRowProps) {
   return (
     <div
@@ -36,7 +42,27 @@ export function TaskRow({ item, onToggleComplete, onClick }: TaskRowProps) {
         >
           {item.title}
         </p>
+        {item.type === "NOTE" && snippet(item.content) && (
+          <p className="mt-0.5 truncate text-xs text-[var(--text-secondary)]">
+            {snippet(item.content)}
+          </p>
+        )}
       </div>
+      {item.tags.length > 0 && (
+        <div className="hidden shrink-0 gap-1 sm:flex">
+          {item.tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+            >
+              #{tag}
+            </span>
+          ))}
+          {item.tags.length > 3 && (
+            <span className="text-xs text-[var(--text-secondary)]">+{item.tags.length - 3}</span>
+          )}
+        </div>
+      )}
       {item.type === "TODO" && <PriorityBadge priority={item.priority} />}
       {item.due_date && (
         <span className="shrink-0 text-xs text-[var(--text-secondary)]">

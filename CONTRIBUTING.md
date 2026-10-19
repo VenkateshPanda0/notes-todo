@@ -38,6 +38,16 @@ cd frontend && npm run lint && npm run build
 
 CI runs the same checks, so please make sure they pass locally first.
 
+## Changing the database schema
+
+TaskFlow keeps users' data in a local SQLite file, so a schema change must upgrade **existing** databases without losing data. `Base.metadata.create_all` only creates missing tables; it never alters existing ones.
+
+1. Change the models.
+2. In `backend/app/db/migrations.py`, bump `LATEST_SCHEMA_VERSION` and, if you alter an existing table (for example adding a column), register an upgrade function for that version in `_UPGRADES`.
+3. Add a test in `backend/tests/test_migrations.py` that builds an old-format database, upgrades it, and checks the existing rows survive.
+
+A database from a *newer* TaskFlow than the running app is refused rather than risked.
+
 ## Guidelines
 
 - Keep PRs focused: one change per PR.
