@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..models.item import ItemType
-from ..schemas.item import ItemCreate, ItemRead, ItemUpdate
+from ..schemas.item import ItemCreate, ItemRead, ItemUpdate, QuickAddPreview, QuickAddRequest
 from ..services import items as items_service
+from ..services.quick_add import parse_quick_add
 from ..services.items import ItemNotFoundError
 from .deps import get_db, require_unlocked
 
@@ -17,6 +18,18 @@ def create_item(payload: ItemCreate, db: Session = Depends(get_db)) -> ItemRead:
     """Create a new Todo or Note. The type must be given explicitly by the caller."""
     item = items_service.create_item(db, payload)
     return ItemRead.model_validate(item)
+
+
+@router.post("/parse", response_model=QuickAddPreview, response_model_by_alias=True)
+def parse_quick_add_text(payload: QuickAddRequest) -> QuickAddPreview:
+    """Interpret quick-capture text (e.g. "call dentist tomorrow !high") without saving anything."""
+    result = parse_quick_add(payload.text)
+    return QuickAddPreview(
+        title=result.title,
+        item_type=result.item_type,
+        priority=result.priority,
+        due_date=result.due_date,
+    )
 
 
 @router.get("", response_model=list[ItemRead])

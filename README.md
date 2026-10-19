@@ -18,6 +18,12 @@ Built with **React + TypeScript**, **FastAPI**, **SQLAlchemy**, and **SQLite**, 
 
 ![All Tasks](screenshots/all-tasks.jpg)
 
+### Quick Add
+
+Type naturally and see how it's understood before you press Enter.
+
+![Quick Add](screenshots/quick-add.png)
+
 ### Today
 
 ![Today](screenshots/today.jpg)
@@ -45,6 +51,8 @@ Built with **React + TypeScript**, **FastAPI**, **SQLAlchemy**, and **SQLite**, 
 
 ## Features
 
+- **Quick Add** — type `call dentist next friday !high` and TaskFlow fills in the title, due date, and priority. See [Quick Add syntax](#quick-add-syntax).
+- **Keyboard shortcuts** — `/` focuses Quick Add, `n` opens the full task form, `Esc` closes it.
 - **Todos & Notes** — explicitly choose the item type.
 - **Title & Description** — optional descriptions for both.
 - **Priority** — Low, Medium, or High for Todos.
@@ -63,6 +71,26 @@ Built with **React + TypeScript**, **FastAPI**, **SQLAlchemy**, and **SQLite**, 
 - **Local-First Storage** — data is stored locally in SQLite.
 
 Date filtering uses the device's **local date/time**, rather than UTC.
+
+---
+
+## Quick Add syntax
+
+The Quick Add bar at the top of each view understands a small, predictable set of phrases. Anything it doesn't recognize stays in the title, and a live preview shows what will be created.
+
+| Write this | You get |
+| --- | --- |
+| `today`, `tomorrow`, `tmr` | Due today / tomorrow |
+| `friday`, `next friday`, `on friday` | Due the next Friday (never today) |
+| `next week` | Due next Monday |
+| `in 3 days`, `in 2 weeks` | Due that many days/weeks from now |
+| `dec 25`, `25th of december`, `2026-12-25` | Due that date (rolls to next year if it has passed) |
+| `!high`, `!med`, `!low` (or `!h`, `!m`, `!l`) | Priority |
+| `note: ...` | Creates a Note instead of a Todo (dates are left in the text) |
+
+Example: `call dentist next friday !high` → Todo "call dentist", due next Friday, High priority.
+
+Short weekday forms that are also everyday words (`mon`, `wed`, `sat`, `sun`) are intentionally not recognized, so a title like "sat on the chair" is left alone.
 
 ---
 
@@ -367,9 +395,10 @@ TaskFlow focuses on this workflow rather than becoming a full project-management
 **Next**
 - [x] Enforced App Lock (session tokens, brute-force throttling)
 - [ ] Encrypted database at rest
-- [ ] Quick capture: global hotkey and natural-language dates
+- [x] Quick Add with natural-language dates and priority
+- [ ] Global capture hotkey (works while TaskFlow is in the background)
 - [ ] Database backup & restore, import / export
-- [ ] Keyboard shortcuts
+- [x] Basic keyboard shortcuts (`/`, `n`, `Esc`); more to come
 
 **Soon**
 - [ ] Markdown notes with tags and note ↔ todo links

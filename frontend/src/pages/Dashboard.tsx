@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { itemsApi } from "../api/client";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
+import { QuickAdd } from "../components/QuickAdd";
 import { TaskModal } from "../components/TaskModal";
 import { TaskRow } from "../components/TaskRow";
 import type { Item, ItemType, Priority } from "../types/item";
@@ -38,6 +39,8 @@ export function Dashboard({ view = "all" }: DashboardProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
 
+  const quickAddRef = useRef<HTMLInputElement>(null);
+
   const load = async () => {
     setLoading(true);
     setError(null);
@@ -54,6 +57,30 @@ export function Dashboard({ view = "all" }: DashboardProps) {
   useEffect(() => {
     load();
   }, []);
+
+  // Keyboard shortcuts: "/" focuses quick add, "n" opens the full form. Ignored while typing.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || modalOpen) return;
+      const el = document.activeElement;
+      if (
+        el instanceof HTMLElement &&
+        (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName))
+      ) {
+        return;
+      }
+      if (e.key === "/") {
+        e.preventDefault();
+        quickAddRef.current?.focus();
+      } else if (e.key === "n") {
+        e.preventDefault();
+        setEditingItem(null);
+        setModalOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [modalOpen]);
 
   const filtered = useMemo(() => {
     let result = items;
@@ -148,6 +175,14 @@ export function Dashboard({ view = "all" }: DashboardProps) {
         <h1 className="text-2xl font-semibold text-[var(--text)]">{title}</h1>
         <Button onClick={handleOpenNew}>+ Add Task</Button>
       </div>
+
+      {view !== "completed" && (
+        <QuickAdd
+          defaultType={view === "notes" ? "NOTE" : "TODO"}
+          inputRef={quickAddRef}
+          onCreated={(created) => setItems((prev) => [created, ...prev])}
+        />
+      )}
 
       <Input
         value={search}

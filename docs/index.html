@@ -99,6 +99,7 @@ footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-s
     <div class="grid">
       <div class="card"><h3>Local-first</h3><p>Your data lives in a SQLite file on your computer. It works offline and needs no sign-up.</p></div>
       <div class="card"><h3>Todos &amp; Notes</h3><p>Priorities and due dates for todos, free-form notes for reference. Convert between them any time.</p></div>
+      <div class="card"><h3>Quick add</h3><p>Type "call dentist next friday !high" and the due date and priority are filled in for you.</p></div>
       <div class="card"><h3>Smart views</h3><p>All Tasks, Today, Upcoming, Completed and Notes, with live search and filters.</p></div>
       <div class="card"><h3>Calendar</h3><p>A monthly calendar with priority indicators. Click a day to add a todo due on it.</p></div>
       <div class="card"><h3>App lock</h3><p>Optional password lock with PBKDF2 hashing and a token-protected local API, to keep casual snoopers out.</p></div>
@@ -110,6 +111,7 @@ footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-s
     <h2>A closer look</h2>
     <p class="sub">A clean, quick layout that stays out of your way.</p>
     <div class="gallery">
+      <figure><img loading="lazy" src="assets/quick-add.png" alt="Quick add with live preview"><figcaption>Quick add: natural-language dates and priority</figcaption></figure>
       <figure><img loading="lazy" src="assets/today.jpg" alt="Today view"><figcaption>Today: what's due right now</figcaption></figure>
       <figure><img loading="lazy" src="assets/calendar.jpg" alt="Calendar view"><figcaption>Calendar: plan the month</figcaption></figure>
       <figure><img loading="lazy" src="assets/upcoming.jpg" alt="Upcoming view"><figcaption>Upcoming: see what's ahead</figcaption></figure>
@@ -122,7 +124,7 @@ footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-s
     <p class="sub">TaskFlow is young. Here's the direction, in rough priority order. Ideas and votes are welcome in the issue tracker.</p>
     <ul class="road">
       <li><span class="tag now">Next</span><div><strong>Encrypted database.</strong> The app lock now guards the API with session tokens; next is encrypting the data file at rest.</div></li>
-      <li><span class="tag now">Next</span><div><strong>Quick capture.</strong> Global hotkey and natural-language dates ("call dentist next Tuesday").</div></li>
+      <li><span class="tag now">Next</span><div><strong>Global capture hotkey</strong> to add a task from anywhere. Quick Add with natural-language dates already ships.</div></li>
       <li><span class="tag next">Soon</span><div><strong>Markdown notes</strong> with tags and links between notes and todos.</div></li>
       <li><span class="tag next">Soon</span><div><strong>Recurring tasks and reminders</strong> with desktop notifications.</div></li>
       <li><span class="tag">Later</span><div><strong>On-device AI</strong> for summaries and semantic search. It runs locally, never in the cloud.</div></li>

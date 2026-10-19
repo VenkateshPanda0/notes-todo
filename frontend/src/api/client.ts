@@ -1,4 +1,9 @@
-import type { Item, ItemCreatePayload, ItemUpdatePayload } from "../types/item";
+import type {
+  Item,
+  ItemCreatePayload,
+  ItemUpdatePayload,
+  QuickAddPreview,
+} from "../types/item";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
@@ -85,6 +90,11 @@ export const itemsApi = {
     return request<Item[]>(`/api/items${qs ? `?${qs}` : ""}`);
   },
   get: (id: number) => request<Item>(`/api/items/${id}`),
+  parse: (text: string) =>
+    request<QuickAddPreview>("/api/items/parse", {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    }),
   create: (payload: ItemCreatePayload) =>
     request<Item>("/api/items", {
       method: "POST",

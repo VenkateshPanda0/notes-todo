@@ -29,3 +29,10 @@ export interface ItemUpdatePayload {
   priority?: Priority;
   due_date?: string | null;
 }
+
+export interface QuickAddPreview {
+  title: string;
+  type: ItemType;
+  priority: Priority;
+  due_date: string | null;
+}

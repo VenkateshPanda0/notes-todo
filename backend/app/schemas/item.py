@@ -44,3 +44,20 @@ class ItemRead(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+
+class QuickAddRequest(BaseModel):
+    """A single line of free text to interpret as an item."""
+
+    text: str = Field(min_length=1, max_length=1000)
+
+
+class QuickAddPreview(BaseModel):
+    """What quick-add understood from the text. Nothing is saved."""
+
+    title: str
+    item_type: ItemType = Field(serialization_alias="type")
+    priority: Priority
+    due_date: date | None
+
+    model_config = ConfigDict(populate_by_name=True)
