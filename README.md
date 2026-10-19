@@ -38,6 +38,14 @@ See how everything connects. Notes and todos are nodes, `[[links]]` are edges.
 
 ![Graph view](screenshots/graph.png)
 
+### Local AI (optional)
+
+Summaries, a daily plan and related-note suggestions, running on your own computer through Ollama.
+
+![AI assistant in a note](screenshots/ai-assistant.png)
+
+![Local AI settings](screenshots/ai-settings.png)
+
 ### Today
 
 ![Today](screenshots/today.jpg)
@@ -69,6 +77,7 @@ See how everything connects. Notes and todos are nodes, `[[links]]` are edges.
 - **Markdown notes** — headings, lists, code, tables and task lists, with a Write / Preview toggle. Output is sanitized, so pasted HTML can't run scripts.
 - **Linked notes** — `[[Title]]` or `[[Title|label]]` links any note or todo to another. A **Linked from** panel shows backlinks, and clicking a link to a title that doesn't exist yet creates that note.
 - **Graph view** — an interactive map of your links: hover to highlight neighbours, search to spotlight, drag to pin, scroll to zoom, click to open. Links to notes that don't exist yet appear as dashed placeholders you can click to create.
+- **Local AI (optional, off by default)** — summarize a note, get a short **Plan my day** from overdue and due-soon todos, and find **related notes** by meaning. Runs on your computer through [Ollama](https://ollama.com); see [Local AI](#local-ai).
 - **Tags** — add `#tags` to any item, then filter by tag with one click. Quick Add understands them too.
 - **Keyboard shortcuts** — `/` focuses Quick Add, `n` opens the full task form, `Esc` closes it.
 - **Todos & Notes** — explicitly choose the item type.
@@ -110,6 +119,39 @@ The Quick Add bar at the top of each view understands a small, predictable set o
 Example: `call dentist next friday !high #errands` → Todo "call dentist", due next Friday, High priority, tagged `errands`.
 
 Short weekday forms that are also everyday words (`mon`, `wed`, `sat`, `sun`) are intentionally not recognized, so a title like "sat on the chair" is left alone.
+
+---
+
+## Local AI
+
+TaskFlow can use a model running on **your own computer** through [Ollama](https://ollama.com). It is **off by default** and nothing is sent to any cloud service.
+
+**Set up**
+
+1. Install Ollama and start it.
+2. Pull a chat model and an embedding model:
+
+   ```bash
+   ollama pull llama3.2
+   ollama pull nomic-embed-text
+   ```
+
+3. In TaskFlow open **Settings → Local AI** and tick **Enable local AI features**. Pick models there if you have several installed.
+
+**What it does**
+
+| Feature | Where | What happens |
+| --- | --- | --- |
+| **Summarize** | Open any note or todo | A short bullet summary appears. **Add to note** inserts it into the editor; nothing is saved until you save. |
+| **Find related** | Open any note or todo | Items closest in meaning, using embeddings that are cached locally and only recomputed for notes you change. |
+| **Plan my day** | All Tasks / Today | A short plan built from overdue, due-soon (next 3 days) and high-priority todos. |
+
+**Privacy and safety**
+
+- Requests go only to the Ollama server on this machine (`127.0.0.1:11434`). Settings shows a warning if Ollama is configured to be anywhere else (`TASKFLOW_OLLAMA_URL`).
+- With AI turned off, the app never contacts Ollama to generate anything.
+- The model only produces text for you to read. It cannot change, delete or create your data, and note contents are sent as data (not instructions), so text hidden in a note cannot make the AI do anything.
+- Small local models can be wrong or miss things. Treat summaries and plans as suggestions.
 
 ---
 
@@ -441,7 +483,9 @@ TaskFlow focuses on this workflow rather than becoming a full project-management
 
 **Later**
 - [ ] macOS and Linux builds
-- [ ] On-device AI (summaries, semantic search) — local only
+- [x] On-device AI: summaries, daily plan and related notes (local, opt-in)
+- [ ] Chat with your notes (answers grounded in your own notes)
+- [ ] Use embeddings to suggest `[[links]]` and tags while you write
 - [ ] Optional end-to-end encrypted sync
 - [x] Automated Windows releases (built, smoke-tested and published from a version tag)
 - [ ] Automatic updates and code-signed releases

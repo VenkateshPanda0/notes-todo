@@ -13,6 +13,7 @@ Brand-new databases are created from the models directly and stamped with the la
 Version history:
     0  Legacy databases created before versioning (items + app_settings only).
     1  Adds the tags and item_tags tables (picked up by create_all, so no ALTER needed).
+    2  Adds the settings and item_embeddings tables for the optional local AI features.
 """
 
 from collections.abc import Callable
@@ -21,10 +22,10 @@ from sqlalchemy import Connection, Engine, inspect, text
 
 from .base import Base
 
-LATEST_SCHEMA_VERSION = 1
+LATEST_SCHEMA_VERSION = 2
 
-# Upgrade steps for *existing* databases, keyed by the version they upgrade to. Version 1 only adds
-# new tables, which create_all handles, so it needs no entry. Later versions that alter existing
+# Upgrade steps for *existing* databases, keyed by the version they upgrade to. Versions 1 and 2
+# only add new tables, which create_all handles, so they need no entry. Later versions that alter existing
 # tables register a function here.
 _UPGRADES: dict[int, Callable[[Connection], None]] = {}
 

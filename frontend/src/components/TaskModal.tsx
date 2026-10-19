@@ -3,6 +3,7 @@ import { itemsApi } from "../api/client";
 import type { Item, ItemType, Priority } from "../types/item";
 import { Button } from "./Button";
 import { Input } from "./Input";
+import { AiAssist } from "./AiAssist";
 import { Markdown } from "./Markdown";
 
 interface TaskModalProps {
@@ -284,6 +285,18 @@ export function TaskModal({
                 ))}
               </div>
             </div>
+          )}
+
+          {initial && (
+            <AiAssist
+              key={initial.id}
+              item={initial}
+              onOpenItem={onOpenItem && ((other) => confirmLeave() && onOpenItem(other))}
+              onInsertSummary={(text) => {
+                setContent((prev) => (prev.trim() ? `${prev.trimEnd()}\n\n## Summary\n${text}` : text));
+                setPreview(false);
+              }}
+            />
           )}
 
           {error && <p className="text-sm text-danger">{error}</p>}

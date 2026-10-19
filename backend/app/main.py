@@ -2,14 +2,17 @@ import os
 import sys
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.ai import router as ai_router
 from .api.auth import router as auth_router
 from .api.graph import router as graph_router
 from .api.items import router as items_router
 from .api.tags import router as tags_router
 from .db.session import init_database
+from .services.ai import AIDisabledError, AIUnavailableError
 from .spa import SPAStaticFiles
 
 
@@ -45,6 +48,16 @@ app.add_middleware(
 )
 
 
+@app.exception_handler(AIDisabledError)
+async def _ai_disabled(_: Request, exc: AIDisabledError) -> JSONResponse:
+    return JSONResponse(status_code=403, content={"detail": str(exc)})
+
+
+@app.exception_handler(AIUnavailableError)
+async def _ai_unavailable(_: Request, exc: AIUnavailableError) -> JSONResponse:
+    return JSONResponse(status_code=503, content={"detail": str(exc)})
+
+
 @app.get("/health", tags=["health"])
 def health_check() -> dict[str, str]:
     """Return service health for local checks and deployment probes."""
@@ -54,6 +67,7 @@ def health_check() -> dict[str, str]:
 app.include_router(items_router)
 app.include_router(tags_router)
 app.include_router(graph_router)
+app.include_router(ai_router)
 app.include_router(auth_router)
 
 # Serve the built React frontend. Mounted last so it never shadows /api/* or /health.

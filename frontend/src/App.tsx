@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
+import { AiProvider } from "./contexts/AiProvider";
 import { LockProvider, useLock } from "./contexts/LockContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { Dashboard } from "./pages/Dashboard";
@@ -24,23 +25,25 @@ function AppShell() {
   }
 
   return (
-    <BrowserRouter>
-      <div className="flex min-h-screen bg-[var(--bg)]">
-        <Sidebar />
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<Dashboard view="all" />} />
-            <Route path="/today" element={<Dashboard view="today" />} />
-            <Route path="/upcoming" element={<Dashboard view="upcoming" />} />
-            <Route path="/completed" element={<Dashboard view="completed" />} />
-            <Route path="/notes" element={<Dashboard view="notes" />} />
-            <Route path="/calendar" element={<CalendarView />} />
-            <Route path="/graph" element={<GraphView />} />
-            <Route path="/settings" element={<Settings />} />
-          </Routes>
-        </main>
-      </div>
-    </BrowserRouter>
+    <AiProvider>
+      <BrowserRouter>
+        <div className="flex min-h-screen bg-[var(--bg)]">
+          <Sidebar />
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<Dashboard view="all" />} />
+              <Route path="/today" element={<Dashboard view="today" />} />
+              <Route path="/upcoming" element={<Dashboard view="upcoming" />} />
+              <Route path="/completed" element={<Dashboard view="completed" />} />
+              <Route path="/notes" element={<Dashboard view="notes" />} />
+              <Route path="/calendar" element={<CalendarView />} />
+              <Route path="/graph" element={<GraphView />} />
+              <Route path="/settings" element={<Settings />} />
+            </Routes>
+          </main>
+        </div>
+      </BrowserRouter>
+    </AiProvider>
   );
 }
 

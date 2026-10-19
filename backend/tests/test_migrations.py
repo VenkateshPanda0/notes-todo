@@ -85,3 +85,33 @@ def test_database_from_a_newer_app_version_is_refused(legacy_engine):
 
     with legacy_engine.connect() as connection:
         assert connection.execute(text("SELECT COUNT(*) FROM items")).scalar_one() == 1
+
+
+def test_version_1_database_gains_the_ai_tables_and_keeps_its_data(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'v1.db'}")
+    # Build a database exactly as schema version 1 shipped (tags, but no settings/embeddings).
+    with engine.begin() as connection:
+        for statement in filter(None, (s.strip() for s in LEGACY_SCHEMA.split(";"))):
+            connection.execute(text(statement))
+        connection.execute(text("CREATE TABLE tags (id INTEGER PRIMARY KEY, name VARCHAR(32) NOT NULL UNIQUE)"))
+        connection.execute(
+            text(
+                "CREATE TABLE item_tags (item_id INTEGER NOT NULL, tag_id INTEGER NOT NULL, "
+                "PRIMARY KEY (item_id, tag_id))"
+            )
+        )
+        connection.execute(
+            text(
+                "INSERT INTO items (title, content, type, completed, priority, created_at, updated_at) "
+                "VALUES ('Kept', 'safe', 'NOTE', 0, 'LOW', '2026-01-01 00:00:00', '2026-01-01 00:00:00')"
+            )
+        )
+        connection.execute(text("PRAGMA user_version = 1"))
+
+    init_database(engine)
+
+    assert {"settings", "item_embeddings"} <= set(inspect(engine).get_table_names())
+    assert _version(engine) == LATEST_SCHEMA_VERSION == 2
+    with engine.connect() as connection:
+        assert connection.execute(text("SELECT title, content FROM items")).one() == ("Kept", "safe")
+    engine.dispose()

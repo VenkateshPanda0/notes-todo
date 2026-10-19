@@ -114,3 +114,43 @@ class GraphEdgeRead(BaseModel):
 class GraphRead(BaseModel):
     nodes: list[GraphNodeRead]
     edges: list[GraphEdgeRead]
+
+
+# --- local AI -----------------------------------------------------------------------------------
+
+
+class AIStatus(BaseModel):
+    """Whether local AI is switched on, and whether Ollama is reachable."""
+
+    enabled: bool
+    available: bool
+    local: bool
+    base_url: str
+    models: list[str]
+    model: str
+    embed_model: str
+    chat_model_ready: bool
+    embed_model_ready: bool
+    error: str | None = None
+
+
+class AISettingsUpdate(BaseModel):
+    enabled: bool | None = None
+    model: str | None = Field(default=None, max_length=128)
+    embed_model: str | None = Field(default=None, max_length=128)
+
+
+class SummaryRead(BaseModel):
+    summary: str
+    model: str
+
+
+class PlanRead(BaseModel):
+    plan: str
+    model: str
+    items: list[ItemRead]
+
+
+class RelatedRead(BaseModel):
+    item: ItemRead
+    score: float

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { itemsApi } from "../api/client";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
+import { PlanMyDay } from "../components/PlanMyDay";
 import { QuickAdd } from "../components/QuickAdd";
 import { TaskModal } from "../components/TaskModal";
 import { TaskRow } from "../components/TaskRow";
@@ -219,6 +220,15 @@ export function Dashboard({ view = "all" }: DashboardProps) {
         <h1 className="text-2xl font-semibold text-[var(--text)]">{title}</h1>
         <Button onClick={handleOpenNew}>+ Add Task</Button>
       </div>
+
+      {(view === "today" || view === "all") && (
+        <PlanMyDay
+          onOpenItem={(item) => {
+            setEditingItem(item);
+            setModalOpen(true);
+          }}
+        />
+      )}
 
       {view !== "completed" && (
         <QuickAdd

@@ -5,6 +5,7 @@ from sqlalchemy import Boolean, Date, DateTime, Enum as SqlEnum, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..db.base import Base
+from .embedding import ItemEmbedding
 from .tag import Tag, item_tags
 
 
@@ -46,4 +47,8 @@ class Item(Base):
 
     tags: Mapped[list[Tag]] = relationship(
         secondary=item_tags, lazy="selectin", order_by=Tag.name, passive_deletes=True
+    )
+    # Removed together with the item (SQLite does not enforce foreign keys by default).
+    embedding: Mapped[ItemEmbedding | None] = relationship(
+        cascade="all, delete-orphan", uselist=False
     )

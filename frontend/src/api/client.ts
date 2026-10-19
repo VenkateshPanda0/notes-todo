@@ -1,4 +1,9 @@
 import type {
+  AIPlan,
+  AIRelated,
+  AISettingsUpdate,
+  AIStatus,
+  AISummary,
   GraphData,
   Item,
   ItemCreatePayload,
@@ -125,4 +130,18 @@ export const itemsApi = {
 
 export const graphApi = {
   get: () => request<GraphData>("/api/graph"),
+};
+
+// --- Local AI (Ollama) ---------------------------------------------------
+
+export const aiApi = {
+  status: () => request<AIStatus>("/api/ai/status"),
+  updateSettings: (payload: AISettingsUpdate) =>
+    request<AIStatus>("/api/ai/settings", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  summarize: (id: number) => request<AISummary>(`/api/ai/summarize/${id}`, { method: "POST" }),
+  planDay: () => request<AIPlan>("/api/ai/plan-day", { method: "POST" }),
+  related: (id: number, limit = 5) => request<AIRelated[]>(`/api/ai/related/${id}?limit=${limit}`),
 };

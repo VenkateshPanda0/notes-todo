@@ -56,3 +56,38 @@ export interface GraphData {
   nodes: GraphNodeData[];
   edges: { source: string; target: string }[];
 }
+
+export interface AIStatus {
+  enabled: boolean;
+  available: boolean;
+  local: boolean;
+  base_url: string;
+  models: string[];
+  model: string;
+  embed_model: string;
+  chat_model_ready: boolean;
+  embed_model_ready: boolean;
+  error: string | null;
+}
+
+export interface AISettingsUpdate {
+  enabled?: boolean;
+  model?: string;
+  embed_model?: string;
+}
+
+export interface AISummary {
+  summary: string;
+  model: string;
+}
+
+export interface AIPlan {
+  plan: string;
+  model: string;
+  items: Item[];
+}
+
+export interface AIRelated {
+  item: Item;
+  score: number;
+}

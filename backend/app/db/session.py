@@ -58,6 +58,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_database(database_engine: Engine | None = None) -> None:
     """Create or upgrade the schema for a supplied engine or the local database."""
-    from ..models import AppSettings, Item, Tag  # noqa: F401  (register models on Base.metadata)
+    from ..models import AppSettings, Item, ItemEmbedding, Setting, Tag  # noqa: F401  (register models)
 
     migrate(database_engine or engine)

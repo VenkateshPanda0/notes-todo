@@ -117,6 +117,10 @@ def run_smoke_test(app, *, require_frontend: bool, require_webview: bool) -> lis
         status, body = _get(f"{running.url}/api/graph")
         check("GET /api/graph", status == 200 and len(json.loads(body)["nodes"]) == 1, body)
 
+        # Works without Ollama installed; proves the AI endpoints and httpx are in this build.
+        status, body = _get(f"{running.url}/api/ai/status")
+        check("GET /api/ai/status", status == 200 and json.loads(body)["enabled"] is False, body)
+
         if require_frontend:
             status, body = _get(f"{running.url}/")
             check("GET / serves the app", status == 200 and 'id="root"' in body)
