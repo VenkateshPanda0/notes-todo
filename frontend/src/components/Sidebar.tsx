@@ -7,6 +7,7 @@ const navItems = [
   { to: "/completed", label: "Completed" },
   { to: "/notes", label: "Notes" },
   { to: "/calendar", label: "Calendar" },
+  { to: "/graph", label: "Graph" },
 ];
 
 export function Sidebar() {

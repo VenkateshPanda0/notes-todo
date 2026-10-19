@@ -1,4 +1,5 @@
 import type {
+  GraphData,
   Item,
   ItemCreatePayload,
   ItemUpdatePayload,
@@ -115,4 +116,10 @@ export const itemsApi = {
     request<Item>(`/api/items/${id}/reopen`, { method: "POST" }),
   convert: (id: number) =>
     request<Item>(`/api/items/${id}/convert`, { method: "POST" }),
+};
+
+// --- Graph -------------------------------------------------------------
+
+export const graphApi = {
+  get: () => request<GraphData>("/api/graph"),
 };

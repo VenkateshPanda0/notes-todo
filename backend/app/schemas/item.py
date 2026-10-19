@@ -89,3 +89,28 @@ class QuickAddPreview(BaseModel):
     tags: list[str] = Field(default_factory=list)
 
     model_config = ConfigDict(populate_by_name=True)
+
+
+class GraphNodeRead(BaseModel):
+    """An item (or a link target that doesn't exist yet) in the link graph."""
+
+    key: str
+    id: int | None
+    title: str
+    item_type: ItemType | None = Field(serialization_alias="type")
+    completed: bool
+    tags: list[str]
+    missing: bool
+    degree: int
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class GraphEdgeRead(BaseModel):
+    source: str
+    target: str
+
+
+class GraphRead(BaseModel):
+    nodes: list[GraphNodeRead]
+    edges: list[GraphEdgeRead]

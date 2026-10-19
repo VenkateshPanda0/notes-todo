@@ -32,6 +32,12 @@ Write notes in Markdown, link them together with `[[Title]]`, and see what links
 
 ![Backlinks](screenshots/backlinks.png)
 
+### Graph View
+
+See how everything connects. Notes and todos are nodes, `[[links]]` are edges.
+
+![Graph view](screenshots/graph.png)
+
 ### Today
 
 ![Today](screenshots/today.jpg)
@@ -62,6 +68,7 @@ Write notes in Markdown, link them together with `[[Title]]`, and see what links
 - **Quick Add** — type `call dentist next friday !high` and TaskFlow fills in the title, due date, and priority. See [Quick Add syntax](#quick-add-syntax).
 - **Markdown notes** — headings, lists, code, tables and task lists, with a Write / Preview toggle. Output is sanitized, so pasted HTML can't run scripts.
 - **Linked notes** — `[[Title]]` or `[[Title|label]]` links any note or todo to another. A **Linked from** panel shows backlinks, and clicking a link to a title that doesn't exist yet creates that note.
+- **Graph view** — an interactive map of your links: hover to highlight neighbours, search to spotlight, drag to pin, scroll to zoom, click to open. Links to notes that don't exist yet appear as dashed placeholders you can click to create.
 - **Tags** — add `#tags` to any item, then filter by tag with one click. Quick Add understands them too.
 - **Keyboard shortcuts** — `/` focuses Quick Add, `n` opens the full task form, `Esc` closes it.
 - **Todos & Notes** — explicitly choose the item type.
@@ -414,7 +421,7 @@ TaskFlow focuses on this workflow rather than becoming a full project-management
 
 **Soon**
 - [x] Markdown notes, tags, and note ↔ todo links with backlinks
-- [ ] Graph view of linked notes
+- [x] Interactive graph view of linked notes
 - [ ] Recurring Todos and desktop reminders
 - [x] Versioned database migrations (existing databases upgrade in place)
 
