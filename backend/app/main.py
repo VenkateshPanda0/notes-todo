@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .api.auth import router as auth_router
 from .api.items import router as items_router
+from .api.tags import router as tags_router
 from .db.session import init_database
 from .spa import SPAStaticFiles
 
@@ -50,6 +51,7 @@ def health_check() -> dict[str, str]:
 
 
 app.include_router(items_router)
+app.include_router(tags_router)
 app.include_router(auth_router)
 
 # Serve the built React frontend. Mounted last so it never shadows /api/* or /health.

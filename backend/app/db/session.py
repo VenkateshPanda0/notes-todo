@@ -4,7 +4,7 @@ import sys
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .base import Base
+from .migrations import migrate
 
 
 def default_database_url() -> str:
@@ -35,7 +35,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def init_database(database_engine: Engine | None = None) -> None:
-    """Create the current schema for a supplied engine or the local database."""
-    from ..models import AppSettings, Item  # noqa: F401
+    """Create or upgrade the schema for a supplied engine or the local database."""
+    from ..models import AppSettings, Item, Tag  # noqa: F401  (register models on Base.metadata)
 
-    Base.metadata.create_all(bind=database_engine or engine)
+    migrate(database_engine or engine)

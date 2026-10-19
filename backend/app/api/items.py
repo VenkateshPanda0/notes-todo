@@ -29,6 +29,7 @@ def parse_quick_add_text(payload: QuickAddRequest) -> QuickAddPreview:
         item_type=result.item_type,
         priority=result.priority,
         due_date=result.due_date,
+        tags=list(result.tags),
     )
 
 
@@ -36,10 +37,11 @@ def parse_quick_add_text(payload: QuickAddRequest) -> QuickAddPreview:
 def list_items(
     type: ItemType | None = Query(default=None),
     completed: bool | None = Query(default=None),
+    tag: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> list[ItemRead]:
     """List items, optionally filtered by type and/or completion state."""
-    items = items_service.list_items(db, item_type=type, completed=completed)
+    items = items_service.list_items(db, item_type=type, completed=completed, tag=tag)
     return [ItemRead.model_validate(item) for item in items]
 
 
@@ -51,6 +53,16 @@ def get_item(item_id: int, db: Session = Depends(get_db)) -> ItemRead:
     except ItemNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return ItemRead.model_validate(item)
+
+
+@router.get("/{item_id}/backlinks", response_model=list[ItemRead])
+def get_backlinks(item_id: int, db: Session = Depends(get_db)) -> list[ItemRead]:
+    """Items that link to this one using [[Title]] syntax."""
+    try:
+        items = items_service.get_backlinks(db, item_id)
+    except ItemNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return [ItemRead.model_validate(item) for item in items]
 
 
 @router.patch("/{item_id}", response_model=ItemRead)

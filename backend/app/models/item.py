@@ -2,9 +2,10 @@ from datetime import date, datetime, timezone
 from enum import Enum
 
 from sqlalchemy import Boolean, Date, DateTime, Enum as SqlEnum, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..db.base import Base
+from .tag import Tag, item_tags
 
 
 def utc_now() -> datetime:
@@ -41,4 +42,8 @@ class Item(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
+    )
+
+    tags: Mapped[list[Tag]] = relationship(
+        secondary=item_tags, lazy="selectin", order_by=Tag.name, passive_deletes=True
     )

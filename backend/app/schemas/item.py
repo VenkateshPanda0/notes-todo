@@ -1,8 +1,9 @@
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..models.item import ItemType, Priority
+from ..services.tags import normalize_tags
 
 
 class ItemCreate(BaseModel):
@@ -13,8 +14,14 @@ class ItemCreate(BaseModel):
     item_type: ItemType = Field(alias="type")
     priority: Priority = Priority.MEDIUM
     due_date: date | None = None
+    tags: list[str] = Field(default_factory=list)
 
     model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator("tags")
+    @classmethod
+    def _normalize_tags(cls, v: list[str]) -> list[str]:
+        return normalize_tags(v)
 
 
 class ItemUpdate(BaseModel):
@@ -26,8 +33,14 @@ class ItemUpdate(BaseModel):
     completed: bool | None = None
     priority: Priority | None = None
     due_date: date | None = None
+    tags: list[str] | None = None
 
     model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator("tags")
+    @classmethod
+    def _normalize_tags(cls, v: list[str] | None) -> list[str] | None:
+        return None if v is None else normalize_tags(v)
 
 
 class ItemRead(BaseModel):
@@ -40,10 +53,24 @@ class ItemRead(BaseModel):
     completed: bool
     priority: Priority
     due_date: date | None
+    tags: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def _tag_names(cls, v):
+        # The ORM relationship yields Tag objects; the API exposes plain names.
+        return [getattr(tag, "name", tag) for tag in v]
+
+
+class TagCount(BaseModel):
+    """A tag and how many items currently use it."""
+
+    name: str
+    count: int
 
 
 class QuickAddRequest(BaseModel):
@@ -59,5 +86,6 @@ class QuickAddPreview(BaseModel):
     item_type: ItemType = Field(serialization_alias="type")
     priority: Priority
     due_date: date | None
+    tags: list[str] = Field(default_factory=list)
 
     model_config = ConfigDict(populate_by_name=True)

@@ -3,6 +3,7 @@
 Examples:
     "call dentist tomorrow !high"  -> TODO, due tomorrow, HIGH priority
     "note: wifi password is ..."   -> NOTE
+    "plan trip #travel #2026"      -> tag "travel" ("#2026" is left in the title: tags start with a letter)
 
 The grammar is deliberately small and predictable. Anything not recognized stays in the title.
 """
@@ -12,6 +13,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 
 from ..models.item import ItemType, Priority
+from .tags import MAX_TAG_LENGTH, MAX_TAGS_PER_ITEM
 
 _WEEKDAYS = {
     # Short forms that are also common words (mon, wed, sat, sun) are intentionally omitted.
@@ -48,6 +50,7 @@ class QuickAddResult:
     item_type: ItemType
     priority: Priority
     due_date: date | None
+    tags: tuple[str, ...] = ()
 
 
 def _safe_date(year: int, month: int, day: int) -> date | None:
@@ -128,6 +131,15 @@ def parse_quick_add(text: str, today: date | None = None) -> QuickAddResult:
         priority = _PRIORITIES[m[1].lower()]
         working = working[: m.start()] + " " + working[m.end():]
 
+    tags: list[str] = []
+    for m in list(re.finditer(rf"(?<!\S)#([^\W\d_][\w-]{{0,{MAX_TAG_LENGTH - 1}}})(?![\w-])", working)):
+        name = m[1].lower()
+        if name not in tags and len(tags) < MAX_TAGS_PER_ITEM:
+            tags.append(name)
+    working = re.sub(
+        rf"(?<!\S)#[^\W\d_][\w-]{{0,{MAX_TAG_LENGTH - 1}}}(?![\w-])", " ", working
+    )
+
     due_date: date | None = None
     # Notes have no due date, so leave date words in their title.
     if item_type == ItemType.TODO and (found := _find_date(working, today)):
@@ -140,4 +152,11 @@ def parse_quick_add(text: str, today: date | None = None) -> QuickAddResult:
         title = original
         due_date = None
         priority = Priority.MEDIUM
-    return QuickAddResult(title=title[:255], item_type=item_type, priority=priority, due_date=due_date)
+        tags = []
+    return QuickAddResult(
+        title=title[:255],
+        item_type=item_type,
+        priority=priority,
+        due_date=due_date,
+        tags=tuple(tags),
+    )
