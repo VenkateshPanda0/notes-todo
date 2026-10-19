@@ -8,10 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .api.ai import router as ai_router
 from .api.auth import router as auth_router
+from .api.backup import router as backup_router
 from .api.graph import router as graph_router
 from .api.items import router as items_router
 from .api.tags import router as tags_router
-from .db.session import init_database
+from .db.session import engine, init_database
+from .services.backup import run_auto_backup
 from .services.ai import AIDisabledError, AIUnavailableError
 from .spa import SPAStaticFiles
 
@@ -29,6 +31,8 @@ def resolve_frontend_dist() -> str:
 async def lifespan(_: FastAPI):
     """Initialize local persistence before the application serves requests."""
     init_database()
+    if os.getenv("TASKFLOW_DISABLE_AUTO_BACKUP") != "1":
+        run_auto_backup(engine)
     yield
 
 
@@ -68,6 +72,7 @@ app.include_router(items_router)
 app.include_router(tags_router)
 app.include_router(graph_router)
 app.include_router(ai_router)
+app.include_router(backup_router)
 app.include_router(auth_router)
 
 # Serve the built React frontend. Mounted last so it never shadows /api/* or /health.

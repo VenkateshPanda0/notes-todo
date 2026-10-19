@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { aiApi, authApi } from "../api/client";
+import { BackupSettings } from "../components/BackupSettings";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { useAi } from "../contexts/ai-context";
@@ -81,6 +82,8 @@ export function Settings() {
           ))}
         </div>
       </section>
+
+      <BackupSettings />
 
       <section className="mb-8 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-6">
         <h2 className="mb-1 text-sm font-semibold text-[var(--text)]">Local AI (beta)</h2>

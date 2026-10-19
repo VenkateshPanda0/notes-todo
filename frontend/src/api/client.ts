@@ -1,5 +1,7 @@
 import type {
   AIPlan,
+  AutoBackupList,
+  ImportResult,
   AIRelated,
   AISettingsUpdate,
   AIStatus,
@@ -144,4 +146,46 @@ export const aiApi = {
   summarize: (id: number) => request<AISummary>(`/api/ai/summarize/${id}`, { method: "POST" }),
   planDay: () => request<AIPlan>("/api/ai/plan-day", { method: "POST" }),
   related: (id: number, limit = 5) => request<AIRelated[]>(`/api/ai/related/${id}?limit=${limit}`),
+};
+
+// --- Backup, export and import -------------------------------------------
+
+/** Download a file from the API. A plain link can't send the session token, so fetch it first. */
+async function downloadFile(path: string, fallbackName: string): Promise<void> {
+  const headers: Record<string, string> = {};
+  if (sessionToken) headers.Authorization = `Bearer ${sessionToken}`;
+  const response = await fetch(`${BASE_URL}${path}`, { headers });
+  if (response.status === 401) {
+    sessionToken = null;
+    unauthorizedHandler?.();
+  }
+  if (!response.ok) {
+    let detail = response.statusText;
+    try {
+      detail = (await response.json()).detail ?? detail;
+    } catch {
+      // keep statusText
+    }
+    throw new Error(detail);
+  }
+  const disposition = response.headers.get("Content-Disposition") ?? "";
+  const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? fallbackName;
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
+
+export const backupApi = {
+  exportJson: () => downloadFile("/api/backup/export.json", "taskflow-export.json"),
+  exportMarkdown: () => downloadFile("/api/backup/export.zip", "taskflow-markdown.zip"),
+  downloadDatabase: () => downloadFile("/api/backup/database", "taskflow.db"),
+  importFile: (file: File, mode: "merge" | "replace") =>
+    request<ImportResult>(`/api/backup/import?mode=${mode}`, { method: "POST", body: file }),
+  auto: () => request<AutoBackupList>("/api/backup/auto"),
+  runAuto: () => request<AutoBackupList>("/api/backup/auto/run", { method: "POST" }),
 };

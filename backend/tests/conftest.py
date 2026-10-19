@@ -1,8 +1,13 @@
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+
+# Tests start the real app lifespan, which would otherwise write ./backups next to ./flow.db.
+os.environ["TASKFLOW_DISABLE_AUTO_BACKUP"] = "1"
 
 from backend.app.api.deps import get_db
 from backend.app.db.session import init_database

@@ -50,11 +50,20 @@ def test_server_start_failure_is_reported_not_hung():
         start_server(FastAPI(lifespan=failing_lifespan), timeout=10)
 
 
-def test_smoke_test_passes_against_the_real_app(db_session_factory):
+def test_smoke_test_passes_against_the_real_app(tmp_path):
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
     from backend.app.api.deps import get_db
+    from backend.app.db.session import init_database
+
+    # A real file database, as in the packaged app, so backups have somewhere to go.
+    engine = create_engine(f"sqlite:///{tmp_path / 'flow.db'}", connect_args={"check_same_thread": False})
+    init_database(engine)
+    factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     def override():
-        db = db_session_factory()
+        db = factory()
         try:
             yield db
         finally:
@@ -65,8 +74,10 @@ def test_smoke_test_passes_against_the_real_app(db_session_factory):
         failures = run_smoke_test(real_app, require_frontend=False, require_webview=False)
     finally:
         real_app.dependency_overrides.clear()
+        engine.dispose()
 
     assert failures == []
+    assert list((tmp_path / "backups").glob("flow-*.db"))
 
 
 def test_smoke_test_reports_a_missing_frontend():

@@ -91,3 +91,15 @@ export interface AIRelated {
   item: Item;
   score: number;
 }
+
+export interface ImportResult {
+  mode: "merge" | "replace";
+  imported: number;
+  skipped: number;
+}
+
+export interface AutoBackupList {
+  enabled: boolean;
+  directory: string | null;
+  backups: { name: string; size: number; modified: string }[];
+}

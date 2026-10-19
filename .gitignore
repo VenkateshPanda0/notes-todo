@@ -30,3 +30,6 @@ frontend/dist/
 backend/build/ 
 backend/dist/ 
 backend/*.spec 
+
+# Automatic database backups
+backups/

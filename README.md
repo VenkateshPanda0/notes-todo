@@ -38,13 +38,32 @@ See how everything connects. Notes and todos are nodes, `[[links]]` are edges.
 
 ![Graph view](screenshots/graph.png)
 
-### Local AI (optional)
+### Backups and export
+
+Your data is one SQLite file, so TaskFlow makes it easy to keep copies and to leave with your data.
+
+- **Automatic backups:** a snapshot is saved the first time you use TaskFlow each day, in a `backups` folder next to the database (`%APPDATA%\TaskFlow\backups` on Windows). The newest 7 are kept. Snapshots are taken with SQLite's online backup, so they are consistent even while the app is running. Restore one by replacing `flow.db` with it while TaskFlow is closed.
+- **Export (Settings → Backup & export):**
+  - **JSON**: everything, in a versioned file that TaskFlow can re-import.
+  - **Markdown (.zip)**: one `.md` file per item in `Notes/` and `Todos/`, with YAML front matter (title, type, tags, priority, due date, completion). `[[links]]` are kept as they are, so it opens in Obsidian and similar tools.
+  - **Database copy**: a consistent copy of the SQLite file.
+- **Import:** a TaskFlow JSON export, or a zip of Markdown files (Obsidian-style front matter such as `tags: [a, b]` is understood; files without front matter become notes titled after the file).
+  - **Merge** (default) adds what's missing and skips items that already exist, so importing the same file twice is harmless.
+  - **Replace** swaps everything. TaskFlow saves a `before-import-…` safety copy first (the newest 3 are kept) and makes the change in a single transaction, so a failed import leaves your data untouched.
+
+---
+
+## Local AI (optional)
 
 Summaries, a daily plan and related-note suggestions, running on your own computer through Ollama.
 
 ![AI assistant in a note](screenshots/ai-assistant.png)
 
 ![Local AI settings](screenshots/ai-settings.png)
+
+### Backup & Export
+
+![Backup and export](screenshots/backup.png)
 
 ### Today
 
@@ -95,6 +114,7 @@ Summaries, a daily plan and related-note suggestions, running on your own comput
 - **Search** — live search across Todo titles and descriptions.
 - **App Lock** — optional local password protected with PBKDF2 hashing.
 - **Themes** — Light, Dark, and System modes.
+- **Backup, export & import** — automatic daily snapshots, plus export to JSON, to Markdown (one file per item, works with Obsidian), or as a database copy. Import from JSON or a zip of Markdown files. See [Backups](#backups-and-export).
 - **Local-First Storage** — data is stored locally in SQLite.
 
 Date filtering uses the device's **local date/time**, rather than UTC.

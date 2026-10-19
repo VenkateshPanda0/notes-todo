@@ -117,6 +117,14 @@ def run_smoke_test(app, *, require_frontend: bool, require_webview: bool) -> lis
         status, body = _get(f"{running.url}/api/graph")
         check("GET /api/graph", status == 200 and len(json.loads(body)["nodes"]) == 1, body)
 
+        # Take a backup and list it: proves SQLite snapshots work in this build.
+        request = urllib.request.Request(f"{running.url}/api/backup/auto/run", method="POST")
+        with urllib.request.urlopen(request, timeout=10) as response:  # noqa: S310
+            listing = json.loads(response.read())
+        check("POST /api/backup/auto/run", response.status == 200 and listing["enabled"] and len(listing["backups"]) >= 1, str(listing))
+        status, body = _get(f"{running.url}/api/backup/export.json")
+        check("GET /api/backup/export.json", status == 200 and json.loads(body)["format"] == "taskflow-export")
+
         # Works without Ollama installed; proves the AI endpoints and httpx are in this build.
         status, body = _get(f"{running.url}/api/ai/status")
         check("GET /api/ai/status", status == 200 and json.loads(body)["enabled"] is False, body)
@@ -148,6 +156,9 @@ def configure_file_logging() -> None:
 
 def run_gui(app) -> int:
     import webview  # imported lazily so --smoke-test and tests never need a display
+
+    # Exports are downloads (blob links); WebView2 blocks them unless pywebview allows downloads.
+    webview.settings["ALLOW_DOWNLOADS"] = True
 
     running = start_server(app)
     try:
