@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useAi } from "../contexts/ai-context";
 
 const navItems = [
   { to: "/", label: "All Tasks", end: true },
@@ -11,6 +12,10 @@ const navItems = [
 ];
 
 export function Sidebar() {
+  const { status } = useAi();
+  // "Ask" only exists once local AI is switched on.
+  const items = status?.enabled ? [...navItems, { to: "/ask", label: "Ask your notes", end: false }] : navItems;
+
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg-elevated)] p-4">
       <div className="mb-6 flex items-center gap-2 px-2">
@@ -30,7 +35,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">
-        {navItems.map((item) => (
+        {items.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

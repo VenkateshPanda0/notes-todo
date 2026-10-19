@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 
 from ..schemas.item import (
     AISettingsUpdate,
+    AskRead,
+    AskRequest,
     AIStatus,
     ItemRead,
     PlanRead,
@@ -101,3 +103,21 @@ def related(
     except ItemNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return [RelatedRead(item=ItemRead.model_validate(item), score=round(score, 4)) for item, score in pairs]
+
+
+@router.post("/ask", response_model=AskRead)
+def ask(
+    payload: AskRequest,
+    db: Session = Depends(get_db),
+    client: OllamaClient = Depends(get_ai_client),
+) -> AskRead:
+    """Answer a question using only your own notes and todos, and say which ones were used."""
+    answer, model, ranked = ai_assist.ask_notes(db, client, payload.question.strip(), payload.limit)
+    return AskRead(
+        answer=answer,
+        model=model,
+        sources=[
+            RelatedRead(item=ItemRead.model_validate(item), score=round(score, 4))
+            for item, score in ranked
+        ],
+    )

@@ -4,6 +4,7 @@ import { AiProvider } from "./contexts/AiProvider";
 import { LockProvider, useLock } from "./contexts/LockContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { Dashboard } from "./pages/Dashboard";
+import { AskView } from "./pages/AskView";
 import { CalendarView } from "./pages/CalendarView";
 import { GraphView } from "./pages/GraphView";
 import { LockScreen } from "./pages/LockScreen";
@@ -37,6 +38,7 @@ function AppShell() {
               <Route path="/completed" element={<Dashboard view="completed" />} />
               <Route path="/notes" element={<Dashboard view="notes" />} />
               <Route path="/calendar" element={<CalendarView />} />
+              <Route path="/ask" element={<AskView />} />
               <Route path="/graph" element={<GraphView />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>

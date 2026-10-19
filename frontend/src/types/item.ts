@@ -103,3 +103,9 @@ export interface AutoBackupList {
   directory: string | null;
   backups: { name: string; size: number; modified: string }[];
 }
+
+export interface AIAnswer {
+  answer: string;
+  model: string;
+  sources: AIRelated[];
+}

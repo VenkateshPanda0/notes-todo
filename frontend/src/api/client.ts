@@ -1,4 +1,5 @@
 import type {
+  AIAnswer,
   AIPlan,
   AutoBackupList,
   ImportResult,
@@ -145,6 +146,8 @@ export const aiApi = {
     }),
   summarize: (id: number) => request<AISummary>(`/api/ai/summarize/${id}`, { method: "POST" }),
   planDay: () => request<AIPlan>("/api/ai/plan-day", { method: "POST" }),
+  ask: (question: string) =>
+    request<AIAnswer>("/api/ai/ask", { method: "POST", body: JSON.stringify({ question }) }),
   related: (id: number, limit = 5) => request<AIRelated[]>(`/api/ai/related/${id}?limit=${limit}`),
 };
 

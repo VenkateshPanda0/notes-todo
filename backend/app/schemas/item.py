@@ -154,3 +154,14 @@ class PlanRead(BaseModel):
 class RelatedRead(BaseModel):
     item: ItemRead
     score: float
+
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=1000)
+    limit: int = Field(default=6, ge=1, le=12)
+
+
+class AskRead(BaseModel):
+    answer: str
+    model: str
+    sources: list[RelatedRead]
