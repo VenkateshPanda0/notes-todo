@@ -65,3 +65,23 @@ A database from a *newer* TaskFlow than the running app is refused rather than r
 ## License
 
 By contributing you agree that your contributions are licensed under the [MIT License](LICENSE).
+
+## Releasing
+
+Releases are built and published by [`.github/workflows/release.yml`](.github/workflows/release.yml).
+
+1. Make sure `main` is green and contains what you want to ship.
+2. Tag and push:
+
+   ```bash
+   git tag v0.2.0
+   git push origin v0.2.0
+   ```
+
+3. The workflow runs the tests, builds `TaskFlow.exe` on a Windows runner with PyInstaller, runs `TaskFlow.exe --smoke-test` against the built exe, and only then publishes a GitHub Release with the exe and a `.sha256` checksum. Release notes are generated from merged changes.
+
+**Dry run:** in the repository's Actions tab choose *Release → Run workflow*. It builds and smoke-tests the exe and attaches it to the run as an artifact, without creating a release.
+
+If the smoke test fails, the log shows which check failed (server start, API, database, bundled UI, or pywebview) and includes `taskflow.log` from the runner.
+
+To change the app icon or social preview image, edit `scripts/make_assets.py` and run `python scripts/make_assets.py` (needs `pip install pillow`).

@@ -6,7 +6,10 @@ import type {
   QuickAddPreview,
 } from "../types/item";
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
+// The packaged app serves the UI and API from the same local server on a free port, so production
+// builds use relative URLs. During development the Vite dev server talks to the API on port 8000.
+const BASE_URL: string =
+  import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? "" : "http://127.0.0.1:8000");
 
 // The session token lives in memory only: closing the app locks it again, and
 // nothing sensitive is written to localStorage.

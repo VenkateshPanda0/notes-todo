@@ -193,6 +193,7 @@ TaskFlow/
 │   │
 │   ├── tests/
 │   ├── launcher.py
+│   ├── taskflow.ico
 │   └── requirements.txt
 │
 ├── frontend/
@@ -210,6 +211,8 @@ TaskFlow/
 │   ├── vite.config.ts
 │   └── tsconfig*.json
 │
+├── .github/workflows/  # CI and the release pipeline
+├── scripts/            # Asset generation (icon, social preview)
 ├── screenshots/        # README images
 └── docs/               # Landing page (GitHub Pages)
     ├── index.html
@@ -296,16 +299,10 @@ pip install -r requirements.txt
 
 ### 3. Build TaskFlow
 
-If `taskflow.ico` is available:
+From the `backend` folder:
 
 ```bash
-pyinstaller --name TaskFlow --onefile --windowed --icon taskflow.ico --add-data "../frontend/dist;frontend/dist" launcher.py
-```
-
-Without an icon:
-
-```bash
-pyinstaller --name TaskFlow --onefile --windowed --add-data "../frontend/dist;frontend/dist" launcher.py
+pyinstaller --noconfirm --clean --name TaskFlow --onefile --windowed --icon taskflow.ico --add-data "../frontend/dist;frontend/dist" launcher.py
 ```
 
 The executable will be created at:
@@ -316,7 +313,24 @@ backend/dist/TaskFlow.exe
 
 The packaged application contains the Python runtime, backend, and compiled frontend. The end user does **not** need Python, Node.js, npm, or a separately running FastAPI server.
 
-> **WebView2:** TaskFlow uses Microsoft Edge WebView2 through pywebview. The target Windows system must have a compatible WebView2 runtime available.
+The app starts its local server on a **free port chosen at launch** (localhost only), so it never clashes with other software, and the window opens only once the server is ready.
+
+> **WebView2:** TaskFlow uses Microsoft Edge WebView2 through pywebview. The target Windows system must have a compatible WebView2 runtime available (it is included with current Windows 10/11).
+
+### 4. Verify the build (optional)
+
+`TaskFlow.exe --smoke-test --report smoke.txt` starts the bundled server, exercises the API and database, checks that the UI and pywebview were packaged, writes the result to `smoke.txt`, and exits with code `0` on success. The release pipeline runs this on every build.
+
+### Automated releases
+
+Maintainers don't need to build by hand. Pushing a version tag builds the exe on Windows, smoke-tests it, and publishes a GitHub Release with a checksum:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md#releasing) for details, including how to do a dry run.
 
 ---
 
@@ -429,7 +443,8 @@ TaskFlow focuses on this workflow rather than becoming a full project-management
 - [ ] macOS and Linux builds
 - [ ] On-device AI (summaries, semantic search) — local only
 - [ ] Optional end-to-end encrypted sync
-- [ ] Automatic updates and signed Windows releases
+- [x] Automated Windows releases (built, smoke-tested and published from a version tag)
+- [ ] Automatic updates and code-signed releases
 
 Have an idea? [Open an issue](https://github.com/VenkateshPanda0/notes-todo/issues/new/choose). See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
 

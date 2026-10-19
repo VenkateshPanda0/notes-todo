@@ -7,6 +7,31 @@ from sqlalchemy.orm import sessionmaker
 from .migrations import migrate
 
 
+def app_data_dir() -> str:
+    """Per-user folder where the packaged app keeps its data, created if missing.
+
+    Windows keeps the original %APPDATA%\\TaskFlow location so existing users' data is found.
+    TASKFLOW_DATA_DIR overrides everything (useful for tests and portable installs).
+    """
+    override = os.getenv("TASKFLOW_DATA_DIR")
+    if override:
+        path = override
+    elif sys.platform == "win32":
+        roaming = os.environ.get("APPDATA") or os.path.join(
+            os.path.expanduser("~"), "AppData", "Roaming"
+        )
+        path = os.path.join(roaming, "TaskFlow")
+    elif sys.platform == "darwin":
+        path = os.path.join(os.path.expanduser("~"), "Library", "Application Support", "TaskFlow")
+    else:
+        data_home = os.environ.get("XDG_DATA_HOME") or os.path.join(
+            os.path.expanduser("~"), ".local", "share"
+        )
+        path = os.path.join(data_home, "taskflow")
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
 def default_database_url() -> str:
     """Pick a sensible default DB location: a per-user app-data folder when
     running as a packaged exe, or a local file next to the source when
@@ -17,10 +42,7 @@ def default_database_url() -> str:
     if getattr(sys, "frozen", False):
         # Running as a PyInstaller-built exe: use a proper writable, stable
         # location instead of wherever the exe happens to be launched from.
-        app_data_dir = os.path.join(os.environ["APPDATA"], "TaskFlow")
-        os.makedirs(app_data_dir, exist_ok=True)
-        db_path = os.path.join(app_data_dir, "flow.db")
-        return f"sqlite:///{db_path}"
+        return f"sqlite:///{os.path.join(app_data_dir(), 'flow.db')}"
 
     return "sqlite:///./flow.db"
 

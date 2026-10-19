@@ -7,8 +7,8 @@ A checklist and ready-to-edit copy for taking TaskFlow public. Nothing here is p
 - [ ] **Enable GitHub Pages**: repo → Settings → Pages → Source: *Deploy from a branch* → `main` / `/docs`. The site will be at `https://venkateshpanda0.github.io/notes-todo/`.
 - [ ] **Add repo topics**: `todo`, `notes`, `local-first`, `privacy`, `fastapi`, `react`, `typescript`, `sqlite`, `pywebview`, `desktop-app`.
 - [ ] **Set the repo description + website URL** (the Pages link).
-- [ ] **Upload a social preview image** (Settings → Social preview, 1280×640). A cropped screenshot on the dark background works well.
-- [ ] **Publish a release** with `TaskFlow.exe` attached (see README → *Building the Windows .exe*). Tag it `v0.1.0`. Without a downloadable binary most visitors bounce.
+- [ ] **Upload the social preview image** (Settings → Social preview): use `docs/assets/social-preview.png` (1280×640, already generated).
+- [ ] **Publish a release**: run *Actions → Release → Run workflow* once as a dry run, then `git tag v0.1.0 && git push origin v0.1.0`. The pipeline builds, smoke-tests and publishes `TaskFlow.exe` with a checksum. Without a downloadable binary most visitors bounce.
 - [ ] **Record a 20–30 s demo GIF**: add a todo with a date → see it in Today → open Calendar → toggle dark mode. Put it at the top of the README.
 - [ ] Create labels `good first issue`, `help wanted`, `roadmap`; open 5–8 small, well-described issues from the roadmap.
 - [ ] Enable GitHub Discussions for ideas and Q&A.
