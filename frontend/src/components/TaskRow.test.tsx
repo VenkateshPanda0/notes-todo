@@ -57,3 +57,18 @@ describe("TaskRow", () => {
     expect(screen.queryByText("High")).toBeNull();
   });
 });
+
+describe("TaskRow repeat indicator", () => {
+  it("shows a labelled repeat marker for repeating todos", () => {
+    setup(makeItem({ recurrence: "2w" }));
+
+    const marker = screen.getByRole("img", { name: "Repeats: Every 2 weeks" });
+    expect(marker.getAttribute("title")).toBe("Every 2 weeks");
+  });
+
+  it("shows nothing for todos that don't repeat", () => {
+    setup(makeItem({ recurrence: null }));
+
+    expect(screen.queryByRole("img")).toBeNull();
+  });
+});

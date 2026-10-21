@@ -1,8 +1,9 @@
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from ..models.item import ItemType, Priority
+from ..services.recurrence import normalize_recurrence
 from ..services.tags import normalize_tags
 
 
@@ -14,6 +15,7 @@ class ItemCreate(BaseModel):
     item_type: ItemType = Field(alias="type")
     priority: Priority = Priority.MEDIUM
     due_date: date | None = None
+    recurrence: str | None = None
     tags: list[str] = Field(default_factory=list)
 
     model_config = ConfigDict(populate_by_name=True)
@@ -22,6 +24,17 @@ class ItemCreate(BaseModel):
     @classmethod
     def _normalize_tags(cls, v: list[str]) -> list[str]:
         return normalize_tags(v)
+
+    @field_validator("recurrence")
+    @classmethod
+    def _normalize_recurrence(cls, v: str | None) -> str | None:
+        return normalize_recurrence(v)
+
+    @model_validator(mode="after")
+    def _only_todos_repeat(self) -> "ItemCreate":
+        if self.recurrence and self.item_type != ItemType.TODO:
+            raise ValueError("Only todos can repeat.")
+        return self
 
 
 class ItemUpdate(BaseModel):
@@ -33,9 +46,15 @@ class ItemUpdate(BaseModel):
     completed: bool | None = None
     priority: Priority | None = None
     due_date: date | None = None
+    recurrence: str | None = None
     tags: list[str] | None = None
 
     model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator("recurrence")
+    @classmethod
+    def _normalize_recurrence(cls, v: str | None) -> str | None:
+        return normalize_recurrence(v)
 
     @field_validator("tags")
     @classmethod
@@ -53,6 +72,7 @@ class ItemRead(BaseModel):
     completed: bool
     priority: Priority
     due_date: date | None
+    recurrence: str | None = None
     tags: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
@@ -86,6 +106,7 @@ class QuickAddPreview(BaseModel):
     item_type: ItemType = Field(serialization_alias="type")
     priority: Priority
     due_date: date | None
+    recurrence: str | None = None
     tags: list[str] = Field(default_factory=list)
 
     model_config = ConfigDict(populate_by_name=True)

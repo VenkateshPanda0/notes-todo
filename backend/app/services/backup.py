@@ -33,16 +33,19 @@ from ..schemas.backup import (
     ExportItem,
 )
 from .items import _resolve_tags
+from .recurrence import anchor_for
 from .tags import normalize_tags
 
 log = logging.getLogger("taskflow.backup")
 
 AUTO_BACKUP_KEEP = 7
 BEFORE_IMPORT_KEEP = 3
+BEFORE_UPGRADE_KEEP = 3
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024
 MAX_ZIP_FILES = 20_000
 _DAILY_NAME = re.compile(r"^flow-\d{4}-\d{2}-\d{2}\.db$")
 _BEFORE_IMPORT_NAME = re.compile(r"^before-import-\d{8}-\d{6}\.db$")
+_BEFORE_UPGRADE_NAME = re.compile(r"^before-upgrade-v\d+-\d{8}-\d{6}\.db$")
 
 
 class BackupFileError(ValueError):
@@ -64,6 +67,8 @@ def export_json(db: Session) -> dict:
                 completed=i.completed,
                 priority=i.priority,
                 due_date=i.due_date,
+                recurrence=i.recurrence,
+                recurrence_day=i.recurrence_day,
                 tags=[t.name for t in i.tags],
                 created_at=i.created_at,
                 updated_at=i.updated_at,
@@ -119,6 +124,8 @@ def _front_matter(item: Item) -> str:
         lines.append(f"priority: {item.priority.value.lower()}")
         if item.due_date:
             lines.append(f"due: {item.due_date.isoformat()}")
+        if item.recurrence:
+            lines.append(f"repeat: {item.recurrence}")
     if item.tags:
         lines.append("tags: [" + ", ".join(t.name for t in item.tags) + "]")
     lines.append(f"created: {item.created_at.isoformat()}")
@@ -237,6 +244,7 @@ def parse_markdown_zip(raw: bytes) -> list[ExportItem]:
             ExportItem(
                 title=title,
                 content=body.rstrip(),
+                recurrence=_as_text(meta.get("repeat") or meta.get("recurrence")) or None,
                 type=item_type,
                 completed=_as_text(meta.get("completed")).lower() in ("true", "yes", "1"),
                 priority=priority,
@@ -297,6 +305,12 @@ def import_items(db: Session, items: list[ExportItem], mode: str) -> tuple[int, 
                 completed=data.completed,
                 priority=data.priority,
                 due_date=data.due_date,
+                recurrence=data.recurrence if data.item_type == ItemType.TODO else None,
+                recurrence_day=(
+                    (data.recurrence_day or anchor_for(data.due_date, data.recurrence))
+                    if data.item_type == ItemType.TODO
+                    else None
+                ),
                 tags=_resolve_tags(db, _clean_tags(data.tags)),
             )
             if data.created_at:
@@ -356,7 +370,7 @@ def list_auto_backups(engine: Engine) -> list[AutoBackupInfo]:
         return []
     found = []
     for path in directory.iterdir():
-        if _DAILY_NAME.match(path.name) or _BEFORE_IMPORT_NAME.match(path.name):
+        if any(p.match(path.name) for p in (_DAILY_NAME, _BEFORE_IMPORT_NAME, _BEFORE_UPGRADE_NAME)):
             stat = path.stat()
             found.append(
                 AutoBackupInfo(
@@ -393,6 +407,26 @@ def snapshot_before_import(engine: Engine, now: datetime | None = None) -> Path 
         raise BackupFileError(
             "Could not make a safety backup before replacing your data, so nothing was changed."
         )
+
+
+def snapshot_before_upgrade(engine: Engine, from_version: int, now: datetime | None = None) -> Path | None:
+    """Copy the database right before a schema upgrade. Best effort: failing to copy is logged but never
+    blocks the upgrade (the app would otherwise be unable to start)."""
+    directory = backup_directory(engine)
+    if directory is None:
+        return None
+    try:
+        directory.mkdir(parents=True, exist_ok=True)
+        stamp = (now or datetime.now()).strftime("%Y%m%d-%H%M%S")
+        target = directory / f"before-upgrade-v{from_version}-{stamp}.db"
+        tmp = target.with_suffix(".tmp")
+        snapshot_database(engine, tmp)
+        os.replace(tmp, target)
+        _prune(directory, _BEFORE_UPGRADE_NAME, BEFORE_UPGRADE_KEEP)
+        return target
+    except Exception:  # noqa: BLE001
+        log.exception("Could not take a safety backup before upgrading the database")
+        return None
 
 
 def run_auto_backup(engine: Engine, today: date | None = None, keep: int = AUTO_BACKUP_KEEP, force: bool = False) -> Path | None:

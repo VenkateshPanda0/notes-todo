@@ -5,6 +5,15 @@ import { Button } from "./Button";
 import { Input } from "./Input";
 import { AiAssist } from "./AiAssist";
 import { Markdown } from "./Markdown";
+import {
+  PRESETS,
+  UNIT_LABELS,
+  buildRule,
+  describeRecurrence,
+  isPreset,
+  parseRule,
+} from "../lib/recurrence";
+import type { RepeatUnit } from "../lib/recurrence";
 
 interface TaskModalProps {
   open: boolean;
@@ -19,6 +28,7 @@ interface TaskModalProps {
     type: ItemType;
     priority: Priority;
     due_date: string | null;
+    recurrence: string | null;
     tags: string[];
   }) => Promise<void>;
   onDelete?: () => Promise<void>;
@@ -52,6 +62,9 @@ export function TaskModal({
   const [type, setType] = useState<ItemType>("TODO");
   const [priority, setPriority] = useState<Priority>("MEDIUM");
   const [dueDate, setDueDate] = useState("");
+  // The repeat rule ("" = none, otherwise canonical like "1w"); `customRepeat` shows the interval editor.
+  const [repeat, setRepeat] = useState("");
+  const [customRepeat, setCustomRepeat] = useState(false);
   const [tagsText, setTagsText] = useState("");
   const [preview, setPreview] = useState(false);
   const [backlinks, setBacklinks] = useState<Item[]>([]);
@@ -69,6 +82,8 @@ export function TaskModal({
       setContent(initial?.content ?? "");
       setType(initial?.type ?? defaultType);
       setPriority(initial?.priority ?? "MEDIUM");
+      setRepeat(initial?.recurrence ?? "");
+      setCustomRepeat(!!initial?.recurrence && !isPreset(initial.recurrence));
       setDueDate(initial?.due_date ?? "");
       setError(null);
     }
@@ -159,6 +174,7 @@ export function TaskModal({
         type,
         priority,
         due_date: dueDate || null,
+        recurrence: type === "TODO" && repeat ? repeat : null,
         tags: parseTags(tagsText),
       });
       onClose();
@@ -172,7 +188,8 @@ export function TaskModal({
   const isDirty =
     title !== (initial?.title ?? "") ||
     content !== (initial?.content ?? "") ||
-    tagsText.trim() !== (initial?.tags ?? []).map((t) => `#${t}`).join(" ");
+    tagsText.trim() !== (initial?.tags ?? []).map((t) => `#${t}`).join(" ") ||
+    repeat !== (initial?.recurrence ?? "");
 
   // Leaving for another item discards unsaved edits, so confirm first.
   const confirmLeave = () =>
@@ -321,6 +338,74 @@ export function TaskModal({
                   <option value="HIGH">High</option>
                 </select>
               </div>
+            </div>
+          )}
+
+          {type === "TODO" && (
+            <div>
+              <label htmlFor={`${uid}-repeat`} className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
+                Repeat
+              </label>
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  id={`${uid}-repeat`}
+                  value={customRepeat ? "custom" : repeat}
+                  onChange={(e) => {
+                    if (e.target.value === "custom") {
+                      setCustomRepeat(true);
+                      setRepeat(parseRule(repeat) ? repeat : buildRule(2, "w"));
+                    } else {
+                      setCustomRepeat(false);
+                      setRepeat(e.target.value);
+                    }
+                  }}
+                  className="min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  {PRESETS.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                  <option value="custom">Custom…</option>
+                </select>
+                {customRepeat && (
+                  <>
+                    <span className="text-sm text-[var(--text-secondary)]">every</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={365}
+                      aria-label="Repeat interval"
+                      value={parseRule(repeat)?.count ?? 1}
+                      onChange={(e) =>
+                        setRepeat(buildRule(Number(e.target.value), parseRule(repeat)?.unit ?? "w"))
+                      }
+                      className="w-20 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <select
+                      aria-label="Repeat unit"
+                      value={parseRule(repeat)?.unit ?? "w"}
+                      onChange={(e) =>
+                        setRepeat(buildRule(parseRule(repeat)?.count ?? 1, e.target.value as RepeatUnit))
+                      }
+                      className="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      {(Object.keys(UNIT_LABELS) as RepeatUnit[]).map((u) => (
+                        <option key={u} value={u}>
+                          {UNIT_LABELS[u]}
+                          {(parseRule(repeat)?.count ?? 1) === 1 ? "" : "s"}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
+              </div>
+              {repeat && (
+                <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                  {describeRecurrence(repeat)}: completing this task creates the next one
+                  {dueDate ? "" : ", starting from today"}.
+                </p>
+              )}
             </div>
           )}
 

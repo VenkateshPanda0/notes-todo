@@ -1,9 +1,10 @@
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..models.item import ItemType, Priority
+from ..services.recurrence import normalize_recurrence
 
 EXPORT_FORMAT = "taskflow-export"
 EXPORT_VERSION = 1
@@ -19,11 +20,22 @@ class ExportItem(BaseModel):
     completed: bool = False
     priority: Priority = Priority.MEDIUM
     due_date: date | None = None
+    recurrence: str | None = None
+    recurrence_day: int | None = Field(default=None, ge=1, le=31)
     tags: list[str] = Field(default_factory=list)
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
     model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator("recurrence", mode="before")
+    @classmethod
+    def _lenient_recurrence(cls, v):
+        # A repeat rule we can't read shouldn't make the whole import fail; the todo just won't repeat.
+        try:
+            return normalize_recurrence(v) if isinstance(v, str) else None
+        except ValueError:
+            return None
 
 
 class ExportFile(BaseModel):

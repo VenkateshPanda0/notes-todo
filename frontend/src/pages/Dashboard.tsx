@@ -142,6 +142,8 @@ export function Dashboard({ view = "all" }: DashboardProps) {
       ? await itemsApi.reopen(item.id)
       : await itemsApi.complete(item.id);
     setItems((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+    // Completing a repeating todo creates its next occurrence on the server; fetch it.
+    if (updated.completed && updated.recurrence) await load();
   };
 
   const handleOpenNew = () => {
@@ -160,6 +162,7 @@ export function Dashboard({ view = "all" }: DashboardProps) {
     type: ItemType;
     priority: Priority;
     due_date: string | null;
+    recurrence: string | null;
     tags: string[];
   }) => {
     if (editingItem) {

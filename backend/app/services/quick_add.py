@@ -4,6 +4,9 @@ Examples:
     "call dentist tomorrow !high"  -> TODO, due tomorrow, HIGH priority
     "note: wifi password is ..."   -> NOTE
     "plan trip #travel #2026"      -> tag "travel" ("#2026" is left in the title: tags start with a letter)
+    "water plants every 3 days"    -> repeats every 3 days (also: every week/month/year, every other
+                                      week, every weekday, every monday, daily/weekly/monthly/yearly
+                                      at the END of the text)
 
 The grammar is deliberately small and predictable. Anything not recognized stays in the title.
 """
@@ -13,6 +16,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 
 from ..models.item import ItemType, Priority
+from .recurrence import normalize_recurrence
 from .tags import MAX_TAG_LENGTH, MAX_TAGS_PER_ITEM
 
 _WEEKDAYS = {
@@ -51,6 +55,34 @@ class QuickAddResult:
     priority: Priority
     due_date: date | None
     tags: tuple[str, ...] = ()
+    recurrence: str | None = None
+
+
+_UNIT_CODE = {"day": "d", "week": "w", "month": "m", "year": "y"}
+_EVERY_N = re.compile(r"\bevery\s+(\d{1,3})\s+(day|week|month|year)s?\b", re.IGNORECASE)
+_EVERY_OTHER = re.compile(r"\bevery\s+other\s+(day|week|month|year)\b", re.IGNORECASE)
+_EVERY_UNIT = re.compile(r"\bevery\s+(day|week|month|year)\b", re.IGNORECASE)
+_EVERY_WEEKDAYS = re.compile(r"\bevery\s+weekday\b", re.IGNORECASE)
+_EVERY_NAMED_DAY = re.compile(rf"\bevery\s+({_WEEKDAY_RE})\b", re.IGNORECASE)
+# Bare adverbs are only read as a repeat at the very end ("call mom weekly"), so titles such as
+# "weekly report" or "monthly budget review" are left alone.
+_TRAILING_ADVERB = re.compile(r"\b(daily|weekly|monthly|yearly|annually|weekdays)\s*$", re.IGNORECASE)
+
+
+def _extract_recurrence(text: str) -> tuple[str | None, int | None, str]:
+    """Find an explicit "every ..." phrase. Returns (rule, weekday_anchor, text_without_it)."""
+    if m := _EVERY_N.search(text):
+        rule = f"{int(m[1])}{_UNIT_CODE[m[2].lower()]}"
+        return normalize_recurrence(rule), None, text[: m.start()] + " " + text[m.end():]
+    if m := _EVERY_OTHER.search(text):
+        return f"2{_UNIT_CODE[m[1].lower()]}", None, text[: m.start()] + " " + text[m.end():]
+    if m := _EVERY_WEEKDAYS.search(text):
+        return "weekdays", None, text[: m.start()] + " " + text[m.end():]
+    if m := _EVERY_NAMED_DAY.search(text):
+        return "1w", _WEEKDAYS[m[1].lower()], text[: m.start()] + " " + text[m.end():]
+    if m := _EVERY_UNIT.search(text):
+        return f"1{_UNIT_CODE[m[1].lower()]}", None, text[: m.start()] + " " + text[m.end():]
+    return None, None, text
 
 
 def _safe_date(year: int, month: int, day: int) -> date | None:
@@ -140,11 +172,30 @@ def parse_quick_add(text: str, today: date | None = None) -> QuickAddResult:
         rf"(?<!\S)#[^\W\d_][\w-]{{0,{MAX_TAG_LENGTH - 1}}}(?![\w-])", " ", working
     )
 
+    recurrence: str | None = None
+    weekday_anchor: int | None = None
+    if item_type == ItemType.TODO:
+        recurrence, weekday_anchor, working = _extract_recurrence(working)
+
     due_date: date | None = None
     # Notes have no due date, so leave date words in their title.
     if item_type == ItemType.TODO and (found := _find_date(working, today)):
         due_date, m = found
         working = working[: m.start()] + " " + working[m.end():]
+
+    if item_type == ItemType.TODO and recurrence is None:
+        if m := _TRAILING_ADVERB.search(working):
+            recurrence = normalize_recurrence(m[1])
+            working = working[: m.start()]
+
+    if recurrence and due_date is None:
+        # A repeating task needs a first date: "every monday" starts on the next Monday (today if it
+        # is Monday); everything else starts today.
+        due_date = (
+            today + timedelta(days=(weekday_anchor - today.weekday()) % 7)
+            if weekday_anchor is not None
+            else today
+        )
 
     title = re.sub(r"\s+", " ", working).strip(" ,;-")
     if not title:
@@ -153,10 +204,12 @@ def parse_quick_add(text: str, today: date | None = None) -> QuickAddResult:
         due_date = None
         priority = Priority.MEDIUM
         tags = []
+        recurrence = None
     return QuickAddResult(
         title=title[:255],
         item_type=item_type,
         priority=priority,
         due_date=due_date,
         tags=tuple(tags),
+        recurrence=recurrence,
     )

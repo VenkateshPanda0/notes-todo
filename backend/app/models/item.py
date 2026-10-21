@@ -1,7 +1,7 @@
 from datetime import date, datetime, timezone
 from enum import Enum
 
-from sqlalchemy import Boolean, Date, DateTime, Enum as SqlEnum, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Enum as SqlEnum, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..db.base import Base
@@ -40,6 +40,10 @@ class Item(Base):
         SqlEnum(Priority, name="priority"), default=Priority.MEDIUM, nullable=False
     )
     due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # Repeat rule such as "1w" (see services/recurrence.py); only meaningful for todos.
+    recurrence: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    # Day of month a monthly/yearly series is anchored to, so month-end dates don't drift.
+    recurrence_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now

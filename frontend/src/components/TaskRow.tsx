@@ -1,4 +1,5 @@
 import type { Item } from "../types/item";
+import { describeRecurrence } from "../lib/recurrence";
 import { snippet } from "../lib/text";
 import { PriorityBadge } from "./PriorityBadge";
 
@@ -51,6 +52,16 @@ export function TaskRow({ item, onToggleComplete, onClick }: TaskRowProps) {
           </p>
         )}
       </div>
+      {item.recurrence && (
+        <span
+          className="shrink-0 text-xs text-[var(--text-secondary)]"
+          title={describeRecurrence(item.recurrence)}
+          role="img"
+          aria-label={`Repeats: ${describeRecurrence(item.recurrence)}`}
+        >
+          ↻
+        </span>
+      )}
       {item.tags.length > 0 && (
         <div className="hidden shrink-0 gap-1 sm:flex">
           {item.tags.slice(0, 3).map((tag) => (

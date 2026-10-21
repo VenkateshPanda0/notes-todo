@@ -1,9 +1,12 @@
+from datetime import date
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..models.item import Item, ItemType
 from ..models.tag import Tag, item_tags
 from ..schemas.item import ItemCreate, ItemUpdate
+from .recurrence import anchor_for, next_due_date
 
 
 class ItemNotFoundError(Exception):
@@ -12,6 +15,41 @@ class ItemNotFoundError(Exception):
     def __init__(self, item_id: int) -> None:
         self.item_id = item_id
         super().__init__(f"Item {item_id} not found")
+
+
+def _today() -> date:
+    return date.today()  # a function so tests can pin "today"
+
+
+def _spawn_next_occurrence(db: Session, item: Item) -> Item | None:
+    """When a repeating todo is completed, create the next one. Returns it, or None if not needed."""
+    if not item.recurrence or item.item_type != ItemType.TODO:
+        return None
+    due = next_due_date(item.due_date, item.recurrence, item.recurrence_day, _today())
+    # Reopening and completing the same task again must not pile up copies of the same occurrence.
+    already_there = db.execute(
+        select(Item.id).where(
+            Item.item_type == ItemType.TODO,
+            Item.completed.is_(False),
+            Item.title == item.title,
+            Item.recurrence == item.recurrence,
+            Item.due_date == due,
+        )
+    ).first()
+    if already_there:
+        return None
+    following = Item(
+        title=item.title,
+        content=item.content,
+        item_type=ItemType.TODO,
+        priority=item.priority,
+        due_date=due,
+        recurrence=item.recurrence,
+        recurrence_day=item.recurrence_day,
+        tags=list(item.tags),
+    )
+    db.add(following)
+    return following
 
 
 def _resolve_tags(db: Session, names: list[str]) -> list[Tag]:
@@ -37,6 +75,8 @@ def create_item(db: Session, payload: ItemCreate) -> Item:
         item_type=payload.item_type,
         priority=payload.priority,
         due_date=payload.due_date,
+        recurrence=payload.recurrence,
+        recurrence_day=anchor_for(payload.due_date, payload.recurrence),
         tags=_resolve_tags(db, payload.tags),
     )
     db.add(item)
@@ -75,10 +115,22 @@ def update_item(db: Session, item_id: int, payload: ItemUpdate) -> Item:
     item = get_item(db, item_id)
     updates = payload.model_dump(exclude_unset=True, by_alias=False)
     tag_names = updates.pop("tags", None)
+    was_completed = item.completed
     for field, value in updates.items():
         setattr(item, field, value)
     if tag_names is not None:
         item.tags = _resolve_tags(db, tag_names)
+
+    if item.item_type != ItemType.TODO:
+        if updates.get("recurrence"):
+            db.rollback()
+            raise ValueError("Only todos can repeat.")
+        item.recurrence = None
+        item.recurrence_day = None
+    elif "recurrence" in updates or "due_date" in updates:
+        item.recurrence_day = anchor_for(item.due_date, item.recurrence)
+    if item.completed and not was_completed:
+        _spawn_next_occurrence(db, item)
     db.commit()
     db.refresh(item)
     return item
@@ -94,6 +146,8 @@ def delete_item(db: Session, item_id: int) -> None:
 def set_completed(db: Session, item_id: int, completed: bool) -> Item:
     """Mark a Todo as completed or reopen it."""
     item = get_item(db, item_id)
+    if completed and not item.completed:
+        _spawn_next_occurrence(db, item)
     item.completed = completed
     db.commit()
     db.refresh(item)
@@ -104,6 +158,9 @@ def convert_item(db: Session, item_id: int) -> Item:
     """Flip an item's type between TODO and NOTE."""
     item = get_item(db, item_id)
     item.item_type = ItemType.NOTE if item.item_type == ItemType.TODO else ItemType.TODO
+    if item.item_type == ItemType.NOTE:  # notes can't repeat
+        item.recurrence = None
+        item.recurrence_day = None
     db.commit()
     db.refresh(item)
     return item

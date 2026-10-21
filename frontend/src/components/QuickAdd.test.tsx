@@ -9,6 +9,7 @@ const preview = {
   type: "TODO" as const,
   priority: "HIGH" as const,
   due_date: "2026-10-23",
+  recurrence: null as string | null,
   tags: ["errands"],
 };
 
@@ -42,6 +43,20 @@ describe("QuickAdd", () => {
     expect(screen.getByText(/Due .*Oct/)).toBeTruthy();
   });
 
+  it("shows and saves a repeat rule parsed from the text", async () => {
+    vi.spyOn(itemsApi, "parse").mockResolvedValue({ ...preview, recurrence: "2w" });
+    const create = vi.spyOn(itemsApi, "create").mockResolvedValue(makeItem({ recurrence: "2w" }));
+    render(<QuickAdd defaultType="TODO" onCreated={() => {}} />);
+
+    await typeAndSettle("call dentist every other week");
+    expect(screen.getByText("↻ Every 2 weeks")).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.keyDown(input(), { key: "Enter" });
+    });
+    expect(create.mock.calls[0][0].recurrence).toBe("2w");
+  });
+
   it("debounces: rapid typing triggers one request", async () => {
     const parse = vi.spyOn(itemsApi, "parse").mockResolvedValue(preview);
     render(<QuickAdd defaultType="TODO" onCreated={() => {}} />);
@@ -72,6 +87,7 @@ describe("QuickAdd", () => {
       type: "TODO",
       priority: "HIGH",
       due_date: "2026-10-23",
+      recurrence: null,
       tags: ["errands"],
     });
     expect(onCreated.mock.calls[0][0].id).toBe(9);

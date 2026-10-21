@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Ref } from "react";
 import { itemsApi } from "../api/client";
+import { describeRecurrence } from "../lib/recurrence";
 import type { Item, ItemType, QuickAddPreview } from "../types/item";
 import { PriorityBadge } from "./PriorityBadge";
 
@@ -66,6 +67,7 @@ export function QuickAdd({ defaultType, onCreated, inputRef }: QuickAddProps) {
         type: parsed.type,
         priority: parsed.priority,
         due_date: parsed.due_date,
+        recurrence: parsed.recurrence,
         tags: parsed.tags,
       });
       onCreated(created);
@@ -94,7 +96,7 @@ export function QuickAdd({ defaultType, onCreated, inputRef }: QuickAddProps) {
         placeholder={
           defaultType === "NOTE"
             ? 'Quick add a note…  (press "/" to focus)'
-            : 'Quick add…  try "call dentist tomorrow !high #errands"  (press "/" to focus)'
+            : 'Quick add…  try "call dentist tomorrow !high #errands" or "water plants every 3 days"  (press "/" to focus)'
         }
         aria-label="Quick add"
         className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-primary"
@@ -110,6 +112,11 @@ export function QuickAdd({ defaultType, onCreated, inputRef }: QuickAddProps) {
           {shown.due_date && (
             <span className="rounded-full bg-[var(--border)]/40 px-2.5 py-0.5 font-medium">
               Due {formatDate(shown.due_date)}
+            </span>
+          )}
+          {shown.recurrence && (
+            <span className="rounded-full bg-[var(--border)]/40 px-2.5 py-0.5 font-medium">
+              ↻ {describeRecurrence(shown.recurrence)}
             </span>
           )}
           {shown.tags.map((tag) => (

@@ -46,6 +46,8 @@ TaskFlow keeps users' data in a local SQLite file, so a schema change must upgra
 2. In `backend/app/db/migrations.py`, bump `LATEST_SCHEMA_VERSION` and, if you alter an existing table (for example adding a column), register an upgrade function for that version in `_UPGRADES`.
 3. Add a test in `backend/tests/test_migrations.py` that builds an old-format database, upgrades it, and checks the existing rows survive.
 
+Use the `_add_columns` helper in `migrations.py` for `ALTER TABLE ... ADD COLUMN`: it is safe to re-run. Before any upgrade TaskFlow copies the old database to `backups/before-upgrade-vN-<time>.db` (the newest 3 are kept), so a failed upgrade never costs a user their data.
+
 A database from a *newer* TaskFlow than the running app is refused rather than risked.
 
 ## Guidelines

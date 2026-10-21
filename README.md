@@ -52,6 +52,10 @@ Summaries, a daily plan and related-note suggestions, running on your own comput
 
 ![Backup and export](screenshots/backup.png)
 
+### Recurring todos
+
+![Repeat settings](screenshots/recurring.png)
+
 ### Today
 
 ![Today](screenshots/today.jpg)
@@ -90,6 +94,7 @@ Summaries, a daily plan and related-note suggestions, running on your own comput
 - **Title & Description** — optional descriptions for both.
 - **Priority** — Low, Medium, or High for Todos.
 - **Due Dates** — optional due dates for Todos.
+- **Recurring todos** — repeat daily, every weekday, weekly, monthly, yearly or every N days/weeks/months/years. Completing a repeating todo creates the next one (month-end dates don't drift, and an overdue series catches up instead of piling up overdue copies).
 - **Complete / Reopen** — completion state persists across views.
 - **Todo ↔ Note Conversion** — change an item's type after creation.
 - **All Tasks** — view, search, and filter All / Active / Completed Todos.
@@ -122,9 +127,12 @@ The Quick Add bar at the top of each view understands a small, predictable set o
 | `dec 25`, `25th of december`, `2026-12-25` | Due that date (rolls to next year if it has passed) |
 | `!high`, `!med`, `!low` (or `!h`, `!m`, `!l`) | Priority |
 | `#work`, `#ideas` | Tags (must start with a letter, so `#123` stays plain text) |
+| `every day`, `every 3 days`, `every other week`, `every weekday`, `every monday`, `every month`, `every year` (or `daily` / `weekly` / `monthly` / `yearly` at the end) | Repeats; a todo with no date starts today (`every monday` starts on the next Monday) |
 | `note: ...` | Creates a Note instead of a Todo (dates are left in the text) |
 
 Example: `call dentist next friday !high #errands` → Todo "call dentist", due next Friday, High priority, tagged `errands`.
+
+Words like "weekly report" or "monthly budget review" stay as titles: a bare `weekly`/`monthly` only counts as a repeat when it ends the text ("call mom weekly"), and notes never repeat.
 
 Short weekday forms that are also everyday words (`mon`, `wed`, `sat`, `sun`) are intentionally not recognized, so a title like "sat on the chair" is left alone.
 
@@ -507,7 +515,8 @@ TaskFlow focuses on this workflow rather than becoming a full project-management
 **Soon**
 - [x] Markdown notes, tags, and note ↔ todo links with backlinks
 - [x] Interactive graph view of linked notes
-- [ ] Recurring Todos and desktop reminders
+- [x] Recurring todos
+- [ ] Desktop reminders
 - [x] Versioned database migrations (existing databases upgrade in place)
 
 **Later**

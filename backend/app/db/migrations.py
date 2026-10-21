@@ -14,6 +14,7 @@ Version history:
     0  Legacy databases created before versioning (items + app_settings only).
     1  Adds the tags and item_tags tables (picked up by create_all, so no ALTER needed).
     2  Adds the settings and item_embeddings tables for the optional local AI features.
+    3  Adds recurrence and recurrence_day columns to items (repeating todos).
 """
 
 from collections.abc import Callable
@@ -22,12 +23,24 @@ from sqlalchemy import Connection, Engine, inspect, text
 
 from .base import Base
 
-LATEST_SCHEMA_VERSION = 2
+LATEST_SCHEMA_VERSION = 3
+
+def _add_columns(connection: Connection, table: str, columns: dict[str, str]) -> None:
+    """ALTER TABLE ... ADD COLUMN for each column that isn't there yet (safe to re-run)."""
+    existing = {row[1] for row in connection.execute(text(f"PRAGMA table_info({table})"))}
+    for name, definition in columns.items():
+        if name not in existing:
+            connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {definition}"))
+
+
+def _upgrade_to_3(connection: Connection) -> None:
+    _add_columns(connection, "items", {"recurrence": "VARCHAR(16)", "recurrence_day": "INTEGER"})
+
 
 # Upgrade steps for *existing* databases, keyed by the version they upgrade to. Versions 1 and 2
-# only add new tables, which create_all handles, so they need no entry. Later versions that alter existing
-# tables register a function here.
-_UPGRADES: dict[int, Callable[[Connection], None]] = {}
+# only add new tables, which create_all handles, so they need no entry. Versions that alter an
+# existing table register a function here.
+_UPGRADES: dict[int, Callable[[Connection], None]] = {3: _upgrade_to_3}
 
 
 def _get_version(connection: Connection) -> int:
@@ -37,6 +50,16 @@ def _get_version(connection: Connection) -> int:
 def _set_version(connection: Connection, version: int) -> None:
     # PRAGMA does not accept bound parameters; version is always an int we control.
     connection.execute(text(f"PRAGMA user_version = {int(version)}"))
+
+
+def needs_upgrade(engine: Engine) -> int | None:
+    """The database's current schema version if it is an existing SQLite database that is behind the
+    app, else None (new databases, up-to-date ones, and non-SQLite databases need no upgrade)."""
+    if engine.dialect.name != "sqlite" or not inspect(engine).has_table("items"):
+        return None
+    with engine.connect() as connection:
+        version = _get_version(connection)
+    return version if version < LATEST_SCHEMA_VERSION else None
 
 
 def migrate(engine: Engine) -> None:

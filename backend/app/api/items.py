@@ -30,6 +30,7 @@ def parse_quick_add_text(payload: QuickAddRequest) -> QuickAddPreview:
         priority=result.priority,
         due_date=result.due_date,
         tags=list(result.tags),
+        recurrence=result.recurrence,
     )
 
 
@@ -72,6 +73,8 @@ def update_item(item_id: int, payload: ItemUpdate, db: Session = Depends(get_db)
         item = items_service.update_item(db, item_id, payload)
     except ItemNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     return ItemRead.model_validate(item)
 
 

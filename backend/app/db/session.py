@@ -4,7 +4,7 @@ import sys
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .migrations import migrate
+from .migrations import migrate, needs_upgrade
 
 
 def app_data_dir() -> str:
@@ -60,4 +60,11 @@ def init_database(database_engine: Engine | None = None) -> None:
     """Create or upgrade the schema for a supplied engine or the local database."""
     from ..models import AppSettings, Item, ItemEmbedding, Setting, Tag  # noqa: F401  (register models)
 
-    migrate(database_engine or engine)
+    target = database_engine or engine
+    behind = needs_upgrade(target)
+    if behind is not None:
+        # Copy the file first so a failed upgrade can never cost a user their data.
+        from ..services.backup import snapshot_before_upgrade
+
+        snapshot_before_upgrade(target, behind)
+    migrate(target)

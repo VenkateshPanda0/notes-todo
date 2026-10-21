@@ -117,6 +117,7 @@ export function CalendarView() {
     type: ItemType;
     priority: Priority;
     due_date: string | null;
+    recurrence: string | null;
     tags: string[];
   }) => {
     if (editingItem) {
@@ -149,6 +150,7 @@ export function CalendarView() {
           completed: false,
           priority: "MEDIUM",
           due_date: prefillDate,
+          recurrence: null,
           created_at: "",
           updated_at: "",
         } as Item)

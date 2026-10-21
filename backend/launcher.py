@@ -112,10 +112,24 @@ def run_smoke_test(app, *, require_frontend: bool, require_webview: bool) -> lis
         with urllib.request.urlopen(request, timeout=10) as response:  # noqa: S310
             created = json.loads(response.read())
         check("POST /api/items", response.status == 201 and created["title"] == "smoke test")
+        # A repeating todo: completing it must create the next occurrence (rules engine + schema).
+        repeat_request = urllib.request.Request(
+            f"{running.url}/api/items",
+            data=json.dumps({"title": "repeat", "type": "TODO", "due_date": "2026-01-01", "recurrence": "1w"}).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(repeat_request, timeout=10) as response:  # noqa: S310
+            repeating = json.loads(response.read())
+        complete = urllib.request.Request(f"{running.url}/api/items/{repeating['id']}/complete", method="POST")
+        with urllib.request.urlopen(complete, timeout=10):  # noqa: S310
+            pass
+        status, body = _get(f"{running.url}/api/items?type=TODO")
+        check("repeating todo creates its next occurrence", status == 200 and len(json.loads(body)) == 2, body)
         status, body = _get(f"{running.url}/api/items/{created['id']}/backlinks")
         check("GET backlinks", status == 200 and json.loads(body) == [], body)
         status, body = _get(f"{running.url}/api/graph")
-        check("GET /api/graph", status == 200 and len(json.loads(body)["nodes"]) == 1, body)
+        check("GET /api/graph", status == 200 and len(json.loads(body)["nodes"]) == 3, body)
 
         # Take a backup and list it: proves SQLite snapshots work in this build.
         request = urllib.request.Request(f"{running.url}/api/backup/auto/run", method="POST")

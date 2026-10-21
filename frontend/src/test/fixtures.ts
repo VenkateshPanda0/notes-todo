@@ -9,6 +9,7 @@ export function makeItem(overrides: Partial<Item> = {}): Item {
     completed: false,
     priority: "HIGH",
     due_date: "2026-11-01",
+    recurrence: null,
     tags: [],
     created_at: "2026-10-01T00:00:00",
     updated_at: "2026-10-01T00:00:00",
