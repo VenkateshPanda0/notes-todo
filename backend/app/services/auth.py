@@ -61,6 +61,24 @@ def unlock(db: Session, password: str) -> None:
         raise IncorrectPasswordError()
 
 
+def verify_current(db: Session, password: str) -> None:
+    """Raise unless a password is configured and `password` matches it."""
+    settings = get_settings_row(db)
+    if settings is None:
+        raise NoPasswordSetError()
+    if not _verify_password(password, settings.password_hash):
+        raise IncorrectPasswordError()
+
+
+def set_password_hash(db: Session, new_password: str) -> None:
+    """Store a new hash without re-checking the old password (the caller already did)."""
+    settings = get_settings_row(db)
+    if settings is None:
+        raise NoPasswordSetError()
+    settings.password_hash = _hash_password(new_password)
+    db.commit()
+
+
 def change_password(db: Session, current_password: str, new_password: str) -> None:
     """Change the app lock password after verifying the current one."""
     settings = get_settings_row(db)

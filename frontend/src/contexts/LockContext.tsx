@@ -5,6 +5,10 @@ import { authApi, setUnauthorizedHandler } from "../api/client";
 interface LockContextValue {
   loading: boolean;
   hasPassword: boolean;
+  /** The database file is encrypted with the app password. */
+  encrypted: boolean;
+  /** This build can encrypt the database file. */
+  encryptionAvailable: boolean;
   unlocked: boolean;
   setupPassword: (password: string) => Promise<void>;
   skipSetup: () => void;
@@ -18,13 +22,18 @@ const LockContext = createContext<LockContextValue | undefined>(undefined);
 export function LockProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [hasPassword, setHasPassword] = useState(false);
+  const [encrypted, setEncrypted] = useState(false);
+  const [encryptionAvailable, setEncryptionAvailable] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
 
+  // `loading` is only true for the very first check. Re-checking later must not flip the whole app
+  // back to "Loading…": that would unmount the page (and lose messages such as "Password updated.").
   const refreshStatus = async () => {
-    setLoading(true);
     try {
       const status = await authApi.status();
       setHasPassword(status.is_locked);
+      setEncrypted(status.encrypted);
+      setEncryptionAvailable(status.encryption_available);
       if (!status.is_locked) setUnlocked(true);
     } finally {
       setLoading(false);
@@ -66,6 +75,8 @@ export function LockProvider({ children }: { children: ReactNode }) {
       value={{
         loading,
         hasPassword,
+        encrypted,
+        encryptionAvailable,
         unlocked,
         setupPassword,
         skipSetup,

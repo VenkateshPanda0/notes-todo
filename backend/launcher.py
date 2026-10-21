@@ -79,7 +79,9 @@ def _get(url: str) -> tuple[int, str]:
         return response.status, response.read().decode("utf-8", errors="replace")
 
 
-def run_smoke_test(app, *, require_frontend: bool, require_webview: bool) -> list[str]:
+def run_smoke_test(
+    app, *, require_frontend: bool, require_webview: bool, check_encryption: bool = False, require_encryption: bool = False
+) -> list[str]:
     """Exercise a running server end to end. Returns a list of failures (empty means success)."""
     failures: list[str] = []
 
@@ -148,6 +150,11 @@ def run_smoke_test(app, *, require_frontend: bool, require_webview: bool) -> lis
             check("GET / serves the app", status == 200 and 'id="root"' in body)
             status, body = _get(f"{running.url}/notes")
             check("GET /notes falls back to the app", status == 200 and 'id="root"' in body)
+
+        if check_encryption:
+            # Last, because it turns the app lock on. Proves SQLCipher is bundled and the whole
+            # encrypt -> lock -> unlock cycle works in this build.
+            failures.extend(_smoke_encryption(running.url, require_encryption))
     except urllib.error.HTTPError as exc:
         failures.append(f"{exc.url} returned HTTP {exc.code}")
     except (urllib.error.URLError, OSError, ValueError, KeyError) as exc:
@@ -155,6 +162,54 @@ def run_smoke_test(app, *, require_frontend: bool, require_webview: bool) -> lis
     finally:
         running.stop()
     return failures
+
+
+def _smoke_encryption(base: str, required: bool) -> list[str]:
+    """Encrypt the smoke-test database, lock it, unlock it and read the data back."""
+    try:
+        from app.db import crypto
+        from app.db.manager import manager
+    except ImportError:  # imported as backend.launcher (tests) rather than run from the backend folder
+        from backend.app.db import crypto
+        from backend.app.db.manager import manager
+
+    if not crypto.AVAILABLE:
+        return ["database encryption (SQLCipher) is missing from this build"] if required else []
+
+    def call(method: str, path: str, body: dict | None = None, token: str | None = None):
+        headers = {"Content-Type": "application/json"}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        data = json.dumps(body).encode() if body is not None else None
+        request = urllib.request.Request(f"{base}{path}", data=data, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310
+                raw = response.read()
+                return response.status, (json.loads(raw) if raw else None)
+        except urllib.error.HTTPError as exc:
+            return exc.code, None
+
+    password = "smoke-test-password"
+    problems: list[str] = []
+    status, body = call("POST", "/api/auth/setup", {"password": password})
+    token = body["token"] if status == 200 else None
+    if token is None:
+        return [f"could not set an app lock password (HTTP {status})"]
+    status, _ = call("POST", "/api/auth/encryption/enable", {"password": password}, token)
+    if status != 200:
+        return [f"enabling encryption failed (HTTP {status})"]
+    if not manager.path or not crypto.is_encrypted_file(manager.path):
+        problems.append("the database file is not encrypted after enabling encryption")
+    status, _ = call("POST", "/api/auth/lock", token=token)
+    if status != 204 or call("GET", "/api/items", token=token)[0] != 401:
+        problems.append("locking did not close the encrypted database")
+    status, body = call("POST", "/api/auth/unlock", {"password": password})
+    if status != 200:
+        return [*problems, f"unlocking the encrypted database failed (HTTP {status})"]
+    status, items = call("GET", "/api/items", token=body["token"])
+    if status != 200 or len(items) < 1:
+        problems.append("the data was not readable after unlocking")
+    return problems
 
 
 def configure_file_logging() -> None:
@@ -206,6 +261,8 @@ def main(argv: list[str] | None = None) -> int:
             app,
             require_frontend=frozen or os.getenv("TASKFLOW_SMOKE_REQUIRE_FRONTEND") == "1",
             require_webview=frozen and os.getenv("TASKFLOW_SMOKE_SKIP_WEBVIEW") != "1",
+            check_encryption=True,
+            require_encryption=frozen or os.getenv("TASKFLOW_SMOKE_REQUIRE_ENCRYPTION") == "1",
         )
         report = "SMOKE TEST PASSED" if not failures else "SMOKE TEST FAILED:\n" + "\n".join(failures)
         if args.report:

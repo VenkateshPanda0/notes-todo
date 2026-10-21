@@ -22,6 +22,8 @@ from sqlalchemy import delete, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+from ..db import crypto
+from ..db.manager import manager
 from ..models.item import Item, ItemType, Priority
 from ..models.tag import Tag
 from ..schemas.backup import (
@@ -340,13 +342,23 @@ def _clean_tags(tags: list[str]) -> list[str]:
 # --- database snapshots ---------------------------------------------------------------------------
 
 
+def is_backup_name(name: str) -> bool:
+    """True for files the app creates in the backups folder (daily, before-import, before-upgrade)."""
+    return any(p.match(name) for p in (_DAILY_NAME, _BEFORE_IMPORT_NAME, _BEFORE_UPGRADE_NAME))
+
+
 def snapshot_database(engine: Engine, destination: str | os.PathLike) -> None:
-    """Write a consistent copy of the SQLite database, even while the app is using it."""
+    """Write a consistent copy of the SQLite database, even while the app is using it.
+
+    If the database is encrypted the copy is encrypted with the same password, so a backup never
+    puts readable data on disk.
+    """
     if engine.dialect.name != "sqlite":
         raise BackupFileError("Database copies are only supported for SQLite databases.")
+    password = manager.key_for(engine)
     source = engine.raw_connection()
     try:
-        target = sqlite3.connect(str(destination))
+        target = crypto.connect(destination, password) if password is not None else sqlite3.connect(str(destination))
         try:
             source.driver_connection.backup(target)  # type: ignore[attr-defined]
         finally:
@@ -370,7 +382,7 @@ def list_auto_backups(engine: Engine) -> list[AutoBackupInfo]:
         return []
     found = []
     for path in directory.iterdir():
-        if any(p.match(path.name) for p in (_DAILY_NAME, _BEFORE_IMPORT_NAME, _BEFORE_UPGRADE_NAME)):
+        if is_backup_name(path.name):
             stat = path.stat()
             found.append(
                 AutoBackupInfo(

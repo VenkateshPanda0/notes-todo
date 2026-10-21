@@ -50,6 +50,10 @@ Use the `_add_columns` helper in `migrations.py` for `ALTER TABLE ... ADD COLUMN
 
 A database from a *newer* TaskFlow than the running app is refused rather than risked.
 
+## The database layer
+
+`backend/app/db/manager.py` owns the connection: a plain database opens at startup, an encrypted one stays closed until the password arrives (`get_db` yields `None` and `require_unlocked` answers 401). Don't create engines elsewhere. Encryption (`db/crypto.py`) must keep three promises: never modify the source file while converting, always verify a converted file before swapping it in, and never accept an empty password (SQLCipher treats `''` as "no encryption"). Tests for it need `pip install sqlcipher3-wheels` and are slow on purpose (SQLCipher's key derivation is expensive).
+
 ## Guidelines
 
 - Keep PRs focused: one change per PR.

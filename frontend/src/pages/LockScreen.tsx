@@ -4,7 +4,7 @@ import { Input } from "../components/Input";
 import { useLock } from "../contexts/LockContext";
 
 export function LockScreen() {
-  const { hasPassword, setupPassword, skipSetup, unlock } = useLock();
+  const { hasPassword, encrypted, setupPassword, skipSetup, unlock } = useLock();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -35,8 +35,9 @@ export function LockScreen() {
       setSubmitting(true);
       try {
         await unlock(password);
-      } catch {
-        setError("Incorrect password.");
+      } catch (err) {
+        // Show the real reason (wrong password, too many attempts, newer database...).
+        setError(err instanceof Error && err.message ? err.message : "Incorrect password.");
       } finally {
         setSubmitting(false);
       }
@@ -79,7 +80,9 @@ export function LockScreen() {
         <p className="mb-5 text-sm text-[var(--text-secondary)]">
           {isFirstRun
             ? "Optional — lock TaskFlow with a password only you know."
-            : "Enter your password to continue."}
+            : encrypted
+              ? "Your data is encrypted. Enter your password to unlock it."
+              : "Enter your password to continue."}
         </p>
 
         <div className="space-y-3">
@@ -108,7 +111,7 @@ export function LockScreen() {
             disabled={submitting}
             className="w-full"
           >
-            {isFirstRun ? "Set Password" : "Sign In"}
+            {isFirstRun ? "Set Password" : submitting ? "Unlocking…" : encrypted ? "Unlock" : "Sign In"}
           </Button>
 
           {isFirstRun && (

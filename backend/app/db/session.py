@@ -1,9 +1,9 @@
 import os
 import sys
 
-from sqlalchemy import Engine, create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Engine
 
+from .manager import manager
 from .migrations import migrate, needs_upgrade
 
 
@@ -48,19 +48,16 @@ def default_database_url() -> str:
 
 
 DATABASE_URL = default_database_url()
-
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+manager.configure(DATABASE_URL)
 
 
 def init_database(database_engine: Engine | None = None) -> None:
-    """Create or upgrade the schema for a supplied engine or the local database."""
+    """Create or upgrade the schema for a supplied engine or the managed database."""
     from ..models import AppSettings, Item, ItemEmbedding, Setting, Tag  # noqa: F401  (register models)
 
-    target = database_engine or engine
+    target = database_engine or manager.engine
+    if target is None:
+        raise RuntimeError("The database is locked.")
     behind = needs_upgrade(target)
     if behind is not None:
         # Copy the file first so a failed upgrade can never cost a user their data.

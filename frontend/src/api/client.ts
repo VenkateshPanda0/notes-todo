@@ -61,6 +61,15 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export interface LockStatus {
   is_locked: boolean;
+  /** The database file itself is encrypted (it cannot be opened without the password). */
+  encrypted: boolean;
+  /** This build can encrypt the database file. */
+  encryption_available: boolean;
+}
+
+export interface EncryptionResult {
+  encrypted: boolean;
+  removed_plain_backups: number;
 }
 
 interface SessionToken {
@@ -81,6 +90,16 @@ export const authApi = {
   unlock: (password: string) => startSession("/api/auth/unlock", { password }),
   changePassword: (current_password: string, new_password: string) =>
     startSession("/api/auth/change-password", { current_password, new_password }),
+  enableEncryption: (password: string) =>
+    request<EncryptionResult>("/api/auth/encryption/enable", {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    }),
+  disableEncryption: (password: string) =>
+    request<EncryptionResult>("/api/auth/encryption/disable", {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    }),
   lock: async () => {
     try {
       await request<void>("/api/auth/lock", { method: "POST" });

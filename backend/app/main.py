@@ -12,8 +12,7 @@ from .api.backup import router as backup_router
 from .api.graph import router as graph_router
 from .api.items import router as items_router
 from .api.tags import router as tags_router
-from .db.session import engine, init_database
-from .services.backup import run_auto_backup
+from .db.session import manager
 from .services.ai import AIDisabledError, AIUnavailableError
 from .spa import SPAStaticFiles
 
@@ -30,9 +29,7 @@ def resolve_frontend_dist() -> str:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     """Initialize local persistence before the application serves requests."""
-    init_database()
-    if os.getenv("TASKFLOW_DISABLE_AUTO_BACKUP") != "1":
-        run_auto_backup(engine)
+    manager.start()  # plain databases are set up now; encrypted ones wait for the password
     yield
 
 

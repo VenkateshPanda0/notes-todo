@@ -97,3 +97,13 @@ def test_smoke_test_flags_a_bundle_missing_pywebview():
     failures = run_smoke_test(FastAPI(), require_frontend=False, require_webview=True)
 
     assert any("pywebview" in f for f in failures)
+
+
+def test_smoke_encryption_check_fails_loudly_when_sqlcipher_is_missing_from_a_required_build(monkeypatch):
+    from backend.app.db import crypto
+    from backend.launcher import _smoke_encryption
+
+    monkeypatch.setattr(crypto, "AVAILABLE", False)
+
+    assert any("missing from this build" in f for f in _smoke_encryption("http://127.0.0.1:1", required=True))
+    assert _smoke_encryption("http://127.0.0.1:1", required=False) == []  # optional builds may skip it

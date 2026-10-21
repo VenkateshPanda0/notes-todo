@@ -13,9 +13,9 @@ A checklist and ready-to-edit copy for taking TaskFlow public. Nothing here is p
 - [ ] Create labels `good first issue`, `help wanted`, `roadmap`; open 5–8 small, well-described issues from the roadmap.
 - [ ] Enable GitHub Discussions for ideas and Q&A.
 
-## 2. Be honest about the lock
+## 2. Be honest about the lock and encryption
 
-The App Lock now enforces access to the local API with session tokens, but the SQLite file is **not encrypted at rest** yet. Say so in launch posts (the README already does). Shipping database encryption is the best follow-up release and makes a good "v0.2" story.
+The App Lock guards the local API with session tokens, and you can optionally **encrypt the database file** (AES-256, SQLCipher) with the same password. Say plainly in launch posts that it is opt-in, that a forgotten password cannot be recovered, and that exports are plain files. The README's *Database encryption* section lists exactly what it does and does not protect against.
 
 ## 3. Launch copy
 
@@ -28,7 +28,7 @@ The App Lock now enforces access to the local API with session tokens, but the S
 >
 > You explicitly choose Todo vs Note (no auto-classification), and there are Today / Upcoming / Calendar views, search, themes, and an optional app lock. Data lives in `%APPDATA%\TaskFlow\flow.db`.
 >
-> It also has linked Markdown notes with a graph view, and optional on-device AI (summaries, daily plan, related notes via Ollama; off by default, nothing leaves your machine). Next up: database encryption and chatting with your notes. Feedback on direction (and on the architecture) very welcome. MIT licensed.
+> It also has linked Markdown notes with a graph view, and optional on-device AI (summaries, daily plan, related notes via Ollama; off by default, nothing leaves your machine). The database file can be encrypted (opt-in, AES-256 via SQLCipher), and there are automatic backups plus JSON/Markdown export and import. Feedback on direction (and on the architecture) very welcome. MIT licensed.
 
 ### Reddit (r/selfhosted, r/opensource, r/productivity, r/ObsidianMD)
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { aiApi, authApi } from "../api/client";
 import { BackupSettings } from "../components/BackupSettings";
+import { EncryptionSettings } from "../components/EncryptionSettings";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { useAi } from "../contexts/ai-context";
@@ -211,6 +212,8 @@ export function Settings() {
             {hasPassword ? "Change Password" : "Set Password"}
           </Button>
         </div>
+
+        <EncryptionSettings />
 
         {hasPassword && (
           <div className="mt-6 border-t border-[var(--border)] pt-6">

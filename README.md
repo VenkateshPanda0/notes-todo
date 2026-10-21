@@ -76,6 +76,12 @@ Summaries, a daily plan and related-note suggestions, running on your own comput
 
 ![Settings](screenshots/settings.jpg)
 
+### Encrypted Unlock
+
+When the database is encrypted, nothing is readable until the password is entered.
+
+![Encrypted unlock](screenshots/encrypted-unlock.png)
+
 ### App Lock
 
 ![App Lock](screenshots/app-lock.jpg)
@@ -104,7 +110,7 @@ Summaries, a daily plan and related-note suggestions, running on your own comput
 - **Notes** — separate view for reference material.
 - **Calendar** — monthly Todo calendar with priority indicators and due-date creation.
 - **Search** — live search across Todo titles and descriptions.
-- **App Lock** — optional local password protected with PBKDF2 hashing.
+- **App Lock & database encryption** — an optional password (PBKDF2-hashed) locks the app, and you can additionally **encrypt the data file itself** with it (AES-256 via SQLCipher). See [Privacy](#privacy--local-first-design).
 - **Accessible** — fully keyboard-operable (skip link, focus-trapped dialogs that return focus, keyboard Calendar and Graph), labelled form fields and WCAG AA text contrast in both themes, checked with axe-core.
 - **Themes** — Light, Dark, and System modes.
 - **Backup, export & import** — automatic daily snapshots, plus export to JSON, to Markdown (one file per item, works with Obsidian), or as a database copy. Import from JSON or a zip of Markdown files. See [Backups](#backups-and-export).
@@ -474,9 +480,26 @@ TaskFlow is designed to operate locally without:
 
 Todo and Note data remains in the local SQLite database.
 
-The optional App Lock stores the password as a **PBKDF2-derived hash** on the device rather than as plaintext. When a lock is set, the local API requires a short-lived, in-memory **session token** (issued on unlock, revoked on lock or password change), and repeated wrong passwords are temporarily blocked.
+The optional **App Lock** stores the password as a **PBKDF2-derived hash** on the device rather than as plaintext. When a lock is set, the local API requires a short-lived, in-memory **session token** (issued on unlock, revoked on lock or password change), and repeated wrong passwords are temporarily blocked.
 
-> **The database file itself is not encrypted yet.** App Lock keeps other apps and casual snoopers out of the running application, but anyone with access to your user account can still read `flow.db` directly. Encrypting the database is on the roadmap. Don't rely on App Lock for sensitive data until then.
+### Database encryption (optional)
+
+By default the SQLite file is a normal file: the App Lock keeps people out of the running application, but anyone with access to your user account can read `flow.db` directly. Turn on **Settings → App Lock → Database encryption** to encrypt the file itself with your app password (AES-256, via [SQLCipher](https://www.zetetic.net/sqlcipher/)).
+
+What it does:
+
+- The data file (and every backup made afterwards) is unreadable without the password: no notes, titles, tags or settings are visible in the file.
+- The app starts **locked**; the password is what opens the database. **Lock now** closes it again and forgets the key.
+- Enabling is safe: TaskFlow builds an encrypted copy, verifies it (integrity check, same tables, same row counts, same schema version), then swaps it in. The plain original is kept until the result is proven, and a crash at any point is repaired on the next start. Older *unencrypted* backups are securely deleted and replaced with an encrypted one.
+- Changing your password re-encrypts the file and your backups. You can remove encryption again at any time.
+
+What it does **not** do, so you can judge it honestly:
+
+- **A forgotten password cannot be recovered.** There is no reset and no back door. Export a copy first if in doubt.
+- While TaskFlow is unlocked, the key and your decrypted data are in memory; it protects data **at rest** (a copied or stolen file), not a compromised running computer.
+- **Exports** (JSON, Markdown, "database copy" of a plain database) are plain files by design. Keep them somewhere safe.
+- Deleting old plain files is best effort: SSD wear levelling and file-system journals can retain old blocks.
+- It is opt-in. Builds without SQLCipher still work, but cannot encrypt.
 
 ---
 
@@ -506,7 +529,7 @@ TaskFlow focuses on this workflow rather than becoming a full project-management
 
 **Next**
 - [x] Enforced App Lock (session tokens, brute-force throttling)
-- [ ] Encrypted database at rest
+- [x] Encrypted database at rest (optional, AES-256 via SQLCipher)
 - [x] Quick Add with natural-language dates and priority
 - [ ] Global capture hotkey (works while TaskFlow is in the background)
 - [ ] Database backup & restore, import / export

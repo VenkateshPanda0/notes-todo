@@ -2,7 +2,8 @@ def test_status_reports_unlocked_when_no_password_set(client):
     response = client.get("/api/auth/status")
 
     assert response.status_code == 200
-    assert response.json() == {"is_locked": False}
+    assert response.json()["is_locked"] is False
+    assert response.json()["encrypted"] is False
 
 
 def test_setup_password_then_status_reports_locked(client):
@@ -11,7 +12,8 @@ def test_setup_password_then_status_reports_locked(client):
 
     assert setup.status_code == 200
     assert setup.json()["token"]
-    assert status.json() == {"is_locked": True}
+    assert status.json()["is_locked"] is True
+    assert status.json()["encrypted"] is False
 
 
 def test_setup_password_twice_is_rejected(client):
