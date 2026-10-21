@@ -73,7 +73,7 @@ export function Settings() {
                 name="theme"
                 checked={mode === option}
                 onChange={() => setMode(option)}
-                className="text-primary focus:ring-primary"
+                className="text-primary-ink focus:ring-primary"
               />
               <span className="capitalize">
                 {option === "system" ? "System default" : `${option} mode`}
@@ -89,7 +89,7 @@ export function Settings() {
         <h2 className="mb-1 text-sm font-semibold text-[var(--text)]">Local AI (beta)</h2>
         <p className="mb-4 text-sm text-[var(--text-secondary)]">
           Summaries, a daily plan and related-note suggestions, powered by{" "}
-          <a className="text-primary underline" href="https://ollama.com" target="_blank" rel="noreferrer">
+          <a className="text-primary-ink underline" href="https://ollama.com" target="_blank" rel="noreferrer">
             Ollama
           </a>{" "}
           running on this computer. Off by default; your notes are never sent to a cloud service.
@@ -101,7 +101,7 @@ export function Settings() {
             checked={ai?.enabled ?? false}
             disabled={!ai}
             onChange={(e) => saveAi({ enabled: e.target.checked })}
-            className="text-primary focus:ring-primary"
+            className="text-primary-ink focus:ring-primary"
           />
           Enable local AI features
         </label>
@@ -125,7 +125,7 @@ export function Settings() {
               Connected to Ollama · {ai.models.length} model{ai.models.length === 1 ? "" : "s"} installed
             </p>
             {!ai.local && (
-              <p className="rounded-lg bg-red-50 p-3 text-sm text-danger dark:bg-red-950">
+              <p className="rounded-lg bg-red-50 p-3 text-sm text-danger-ink dark:bg-red-950">
                 Ollama at {ai.base_url} is not on this computer. With AI enabled, your notes would be
                 sent to that server.
               </p>
@@ -148,7 +148,7 @@ export function Settings() {
                 ))}
               </select>
               {!ai.chat_model_ready && (
-                <p className="mt-1 text-xs text-warning">
+                <p className="mt-1 text-xs text-warning-ink">
                   No chat model found. Run <code>ollama pull llama3.2</code>.
                 </p>
               )}
@@ -171,14 +171,14 @@ export function Settings() {
                 ))}
               </select>
               {!ai.embed_model_ready && (
-                <p className="mt-1 text-xs text-warning">
+                <p className="mt-1 text-xs text-warning-ink">
                   No embedding model found. Run <code>ollama pull nomic-embed-text</code>.
                 </p>
               )}
             </div>
           </div>
         )}
-        {aiError && <p className="mt-3 text-sm text-danger">{aiError}</p>}
+        {aiError && <p className="mt-3 text-sm text-danger-ink">{aiError}</p>}
       </section>
 
       <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-6">
@@ -205,8 +205,8 @@ export function Settings() {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
           />
-          {error && <p className="text-sm text-danger">{error}</p>}
-          {message && <p className="text-sm text-success">{message}</p>}
+          {error && <p className="text-sm text-danger-ink">{error}</p>}
+          {message && <p className="text-sm text-success-ink">{message}</p>}
           <Button onClick={handleChangePassword}>
             {hasPassword ? "Change Password" : "Set Password"}
           </Button>

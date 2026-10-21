@@ -6,6 +6,7 @@ import { PlanMyDay } from "../components/PlanMyDay";
 import { QuickAdd } from "../components/QuickAdd";
 import { TaskModal } from "../components/TaskModal";
 import { TaskRow } from "../components/TaskRow";
+import { isToday, isUpcoming } from "../lib/dates";
 import { normalizeTitle } from "../lib/markdown";
 import type { Item, ItemType, Priority } from "../types/item";
 
@@ -13,23 +14,6 @@ type Filter = "all" | "active" | "completed";
 
 interface DashboardProps {
   view?: "all" | "today" | "upcoming" | "completed" | "notes";
-}
-
-function localDateString(d: Date): string {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function isToday(dateStr: string | null): boolean {
-  if (!dateStr) return false;
-  return dateStr === localDateString(new Date());
-}
-
-function isUpcoming(dateStr: string | null): boolean {
-  if (!dateStr) return false;
-  return dateStr > localDateString(new Date());
 }
 
 export function Dashboard({ view = "all" }: DashboardProps) {
@@ -254,7 +238,7 @@ export function Dashboard({ view = "all" }: DashboardProps) {
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 effectiveTag === tag
                   ? "bg-primary text-white"
-                  : "bg-primary/10 text-primary hover:bg-primary/20"
+                  : "bg-primary/10 text-primary-ink hover:bg-primary/20"
               }`}
             >
               #{tag} <span className="opacity-70">{count}</span>
@@ -295,7 +279,7 @@ export function Dashboard({ view = "all" }: DashboardProps) {
         </p>
       )}
 
-      {error && <p className="py-4 text-sm text-danger">{error}</p>}
+      {error && <p className="py-4 text-sm text-danger-ink">{error}</p>}
 
       {!loading && !error && filtered.length === 0 && (
         <p className="py-12 text-center text-sm text-[var(--text-secondary)]">

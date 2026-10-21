@@ -9,7 +9,7 @@ const variantClasses: Record<string, string> = {
     "bg-primary text-white hover:bg-primary-hover disabled:opacity-50",
   secondary:
     "bg-transparent border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/40 disabled:opacity-50 disabled:cursor-not-allowed",
-  danger: "bg-red-50 text-danger hover:bg-red-100 dark:bg-red-950 dark:hover:bg-red-900",
+  danger: "bg-red-50 text-danger-ink hover:bg-red-100 dark:bg-red-950 dark:hover:bg-red-900",
   ghost: "bg-transparent text-[var(--text-secondary)] hover:bg-[var(--border)]/40",
 };
 

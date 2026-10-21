@@ -100,6 +100,7 @@ Summaries, a daily plan and related-note suggestions, running on your own comput
 - **Calendar** — monthly Todo calendar with priority indicators and due-date creation.
 - **Search** — live search across Todo titles and descriptions.
 - **App Lock** — optional local password protected with PBKDF2 hashing.
+- **Accessible** — fully keyboard-operable (skip link, focus-trapped dialogs that return focus, keyboard Calendar and Graph), labelled form fields and WCAG AA text contrast in both themes, checked with axe-core.
 - **Themes** — Light, Dark, and System modes.
 - **Backup, export & import** — automatic daily snapshots, plus export to JSON, to Markdown (one file per item, works with Obsidian), or as a database copy. Import from JSON or a zip of Markdown files. See [Backups](#backups-and-export).
 - **Local-First Storage** — data is stored locally in SQLite.
@@ -324,12 +325,16 @@ uvicorn app.main:app --reload
 
 ## Running Tests
 
-The backend includes tests for API functionality, authentication, database behavior, health checks, and item operations.
-
 ```bash
-# from the repository root
+# Backend (from the repository root)
 python -m pytest backend/tests -v
+
+# Frontend
+cd frontend
+npm test
 ```
+
+The backend suite covers the API, migrations, backups, the launcher and the AI features (against a fake model). The frontend suite (Vitest + Testing Library) covers the Markdown/sanitizing pipeline, date logic and key components.
 
 ---
 

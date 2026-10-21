@@ -112,7 +112,7 @@ export function BackupSettings() {
               name="import-mode"
               checked={mode === "merge"}
               onChange={() => setMode("merge")}
-              className="mt-1 text-primary focus:ring-primary"
+              className="mt-1 text-primary-ink focus:ring-primary"
             />
             <span>
               Merge <span className="text-[var(--text-secondary)]">(recommended): add what's missing, skip duplicates</span>
@@ -124,7 +124,7 @@ export function BackupSettings() {
               name="import-mode"
               checked={mode === "replace"}
               onChange={() => setMode("replace")}
-              className="mt-1 text-primary focus:ring-primary"
+              className="mt-1 text-primary-ink focus:ring-primary"
             />
             <span>
               Replace everything{" "}
@@ -137,8 +137,8 @@ export function BackupSettings() {
         </Button>
       </div>
 
-      {error && <p className="mt-3 text-sm text-danger">{error}</p>}
-      {message && <p className="mt-3 text-sm text-success">{message}</p>}
+      {error && <p className="mt-3 text-sm text-danger-ink">{error}</p>}
+      {message && <p className="mt-3 text-sm text-success-ink">{message}</p>}
 
       {auto && (
         <div className="mt-5 border-t border-[var(--border)] pt-4">

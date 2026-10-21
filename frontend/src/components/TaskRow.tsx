@@ -1,4 +1,5 @@
 import type { Item } from "../types/item";
+import { snippet } from "../lib/text";
 import { PriorityBadge } from "./PriorityBadge";
 
 interface TaskRowProps {
@@ -13,12 +14,6 @@ function formatDate(dateStr: string | null): string | null {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-// First non-empty line of a note, with the most common Markdown markers removed.
-function snippet(content: string): string {
-  const line = content.split("\n").find((l) => l.trim()) ?? "";
-  return line.replace(/^[#>*\-\s]+/, "").replace(/[*_`]/g, "").trim();
-}
-
 export function TaskRow({ item, onToggleComplete, onClick }: TaskRowProps) {
   return (
     <div
@@ -28,20 +23,28 @@ export function TaskRow({ item, onToggleComplete, onClick }: TaskRowProps) {
       <input
         type="checkbox"
         checked={item.completed}
+        aria-label={`${item.completed ? "Reopen" : "Complete"} "${item.title}"`}
         onClick={(e) => e.stopPropagation()}
         onChange={() => onToggleComplete(item)}
-        className="h-4 w-4 shrink-0 cursor-pointer rounded border-[var(--border)] text-primary focus:ring-primary"
+        className="h-4 w-4 shrink-0 cursor-pointer rounded border-[var(--border)] text-primary-ink focus:ring-primary"
       />
       <div className="min-w-0 flex-1">
-        <p
-          className={`truncate text-sm font-medium ${
+        {/* A real button so keyboard and screen-reader users can open the item; clicking anywhere
+            else on the row still works with the mouse. */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick(item);
+          }}
+          className={`block w-full truncate text-left text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
             item.completed
               ? "text-[var(--text-secondary)] line-through"
               : "text-[var(--text)]"
           }`}
         >
           {item.title}
-        </p>
+        </button>
         {item.type === "NOTE" && snippet(item.content) && (
           <p className="mt-0.5 truncate text-xs text-[var(--text-secondary)]">
             {snippet(item.content)}
@@ -53,7 +56,7 @@ export function TaskRow({ item, onToggleComplete, onClick }: TaskRowProps) {
           {item.tags.slice(0, 3).map((tag) => (
             <span
               key={tag}
-              className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+              className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary-ink"
             >
               #{tag}
             </span>

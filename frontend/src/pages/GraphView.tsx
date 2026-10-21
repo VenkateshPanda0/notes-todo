@@ -353,7 +353,7 @@ export function GraphView() {
         </div>
       </div>
 
-      {error && <p className="mb-3 text-sm text-danger">{error}</p>}
+      {error && <p className="mb-3 text-sm text-danger-ink">{error}</p>}
 
       {data && data.nodes.length === 0 && (
         <p className="py-16 text-center text-sm text-[var(--text-secondary)]">
@@ -362,7 +362,7 @@ export function GraphView() {
       )}
 
       {data && data.nodes.length > 0 && linkedCount === 0 && (
-        <p className="mb-3 rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary">
+        <p className="mb-3 rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary-ink">
           No links yet. Write <code>[[Another note]]</code> inside a note to connect them.
         </p>
       )}
@@ -449,6 +449,31 @@ export function GraphView() {
             </g>
           </svg>
         </div>
+      )}
+
+      {data && data.nodes.length > 0 && (
+        // The picture is mouse-oriented, so offer the same items as a keyboard- and screen-reader-friendly
+        // list. It is visually hidden until a keyboard user tabs into it.
+        <nav aria-label="Graph items" className="sr-only focus-within:not-sr-only focus-within:mt-3">
+          <p className="mb-1 text-xs text-[var(--text-secondary)]">
+            Items in the graph, with how many links each has:
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {data.nodes.map((n) => (
+              <li key={n.key}>
+                <button
+                  type="button"
+                  onClick={() => openNode(n)}
+                  className="rounded-full border border-[var(--border)] px-2.5 py-0.5 text-xs text-[var(--text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                >
+                  {n.title}
+                  {n.missing ? " (not written yet, creates it)" : ""} · {n.degree} link
+                  {n.degree === 1 ? "" : "s"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
       )}
 
       {data && data.nodes.length > 0 && (

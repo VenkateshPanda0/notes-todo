@@ -61,7 +61,7 @@ export function AiAssist({ item, onInsertSummary, onOpenItem }: AiAssistProps) {
         )}
       </div>
 
-      {error && <p className="mt-2 text-xs text-danger">{error}</p>}
+      {error && <p className="mt-2 text-xs text-danger-ink">{error}</p>}
 
       {summary && (
         <div className="mt-3 rounded-lg bg-primary/5 p-3">

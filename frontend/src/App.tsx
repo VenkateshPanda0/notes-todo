@@ -29,8 +29,14 @@ function AppShell() {
     <AiProvider>
       <BrowserRouter>
         <div className="flex min-h-screen bg-[var(--bg)]">
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:text-white"
+          >
+            Skip to content
+          </a>
           <Sidebar />
-          <main className="flex-1">
+          <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
             <Routes>
               <Route path="/" element={<Dashboard view="all" />} />
               <Route path="/today" element={<Dashboard view="today" />} />

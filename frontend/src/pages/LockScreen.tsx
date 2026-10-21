@@ -86,6 +86,7 @@ export function LockScreen() {
           <Input
             type="password"
             placeholder="Password"
+            aria-label="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
@@ -94,12 +95,13 @@ export function LockScreen() {
             <Input
               type="password"
               placeholder="Confirm password"
+              aria-label="Confirm password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
             />
           )}
-          {error && <p className="text-sm text-danger">{error}</p>}
+          {error && <p className="text-sm text-danger-ink">{error}</p>}
 
           <Button
             onClick={handleSubmit}

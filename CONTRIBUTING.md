@@ -33,7 +33,7 @@ The Vite dev server runs on `http://localhost:5173` and talks to the API on port
 
 ```bash
 python -m pytest backend/tests -v        # run from the repo root
-cd frontend && npm run lint && npm run build
+cd frontend && npm run lint && npm test && npm run build
 ```
 
 CI runs the same checks, so please make sure they pass locally first.
@@ -51,7 +51,8 @@ A database from a *newer* TaskFlow than the running app is refused rather than r
 ## Guidelines
 
 - Keep PRs focused: one change per PR.
-- Add or update tests for backend behavior changes.
+- Add or update tests for behavior changes: `pytest` for the backend, Vitest (`npm test`) for frontend logic and components.
+- Keep the interface accessible: label form fields, make interactive things real buttons/links (not clickable `div`s), and use the `*-ink` colour tokens for text so contrast holds in light and dark mode.
 - Follow the existing layering: `api` (routes) → `schemas` → `services` (logic) → `models`. Keep route handlers thin.
 - Match the surrounding code style. Don't reformat unrelated code.
 - TaskFlow is intentionally **local-first**: features must work offline and must not require an account. Optional network features are fine if they are opt-in.

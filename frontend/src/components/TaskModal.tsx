@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { itemsApi } from "../api/client";
 import type { Item, ItemType, Priority } from "../types/item";
 import { Button } from "./Button";
@@ -57,6 +57,8 @@ export function TaskModal({
   const [backlinks, setBacklinks] = useState<Item[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const uid = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -87,10 +89,55 @@ export function TaskModal({
     };
   }, [open, initial]);
 
+  // Remember the last element focused outside the dialog. The title field's autoFocus steals focus
+  // before any effect can look at document.activeElement, so the opener has to be tracked as it happens.
+  const lastOutsideFocus = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const onFocusIn = (e: FocusEvent) => {
+      const target = e.target;
+      // closest() rather than dialogRef: on the first render autoFocus fires before the ref is attached.
+      if (target instanceof HTMLElement && !target.closest('[role="dialog"]')) {
+        lastOutsideFocus.current = target;
+      }
+    };
+    document.addEventListener("focusin", onFocusIn);
+    return () => document.removeEventListener("focusin", onFocusIn);
+  }, []);
+
+  // Return focus to whatever opened the dialog once it closes.
+  useEffect(() => {
+    if (!open) return;
+    const opener = lastOutsideFocus.current;
+    return () => {
+      if (opener?.isConnected) opener.focus();
+    };
+  }, [open]);
+
+  // Escape closes; Tab and Shift+Tab stay inside the dialog.
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab" || !dialogRef.current) return;
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null);
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !dialogRef.current.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !dialogRef.current.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -136,13 +183,18 @@ export function TaskModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`${uid}-heading`}
         className={`max-h-[92vh] w-full overflow-y-auto rounded-xl ${isNote ? "max-w-2xl" : "max-w-md"} border border-[var(--border)] bg-[var(--bg-elevated)] p-6 shadow-xl`}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[var(--text)]">
+          <h2 id={`${uid}-heading`} className="text-lg font-semibold text-[var(--text)]">
             {initial ? (isNote ? "Edit Note" : "Edit Task") : isNote ? "Add Note" : "Add Task"}
           </h2>
           <button
+            type="button"
             onClick={onClose}
             className="text-[var(--text-secondary)] hover:text-[var(--text)]"
             aria-label="Close"
@@ -159,7 +211,7 @@ export function TaskModal({
                 onClick={() => setType(t)}
                 className={`flex-1 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
                   type === t
-                    ? "border-primary bg-primary/10 text-primary"
+                    ? "border-primary bg-primary/10 text-primary-ink"
                     : "border-[var(--border)] text-[var(--text-secondary)]"
                 }`}
               >
@@ -169,10 +221,11 @@ export function TaskModal({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
+            <label htmlFor={`${uid}-title`} className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
               Title
             </label>
             <Input
+              id={`${uid}-title`}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Finish project report"
@@ -182,7 +235,7 @@ export function TaskModal({
 
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <label className="block text-xs font-medium text-[var(--text-secondary)]">
+              <label htmlFor={`${uid}-content`} className="block text-xs font-medium text-[var(--text-secondary)]">
                 {isNote ? "Note" : "Description (optional)"} · Markdown supported
               </label>
               {content.trim() && (
@@ -194,7 +247,7 @@ export function TaskModal({
                       onClick={() => setPreview(showPreview)}
                       className={`rounded-md px-2 py-0.5 font-medium ${
                         preview === showPreview
-                          ? "bg-primary/10 text-primary"
+                          ? "bg-primary/10 text-primary-ink"
                           : "text-[var(--text-secondary)]"
                       }`}
                     >
@@ -214,6 +267,7 @@ export function TaskModal({
               </div>
             ) : (
               <textarea
+                id={`${uid}-content`}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={
@@ -228,10 +282,11 @@ export function TaskModal({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
+            <label htmlFor={`${uid}-tags`} className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
               Tags
             </label>
             <Input
+              id={`${uid}-tags`}
               value={tagsText}
               onChange={(e) => setTagsText(e.target.value)}
               placeholder="#work #ideas (separate with spaces or commas)"
@@ -241,20 +296,22 @@ export function TaskModal({
           {type === "TODO" && (
             <div className="flex gap-3">
               <div className="flex-1">
-                <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
+                <label htmlFor={`${uid}-due`} className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
                   Due Date
                 </label>
                 <Input
+                  id={`${uid}-due`}
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
                 />
               </div>
               <div className="flex-1">
-                <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
+                <label htmlFor={`${uid}-priority`} className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
                   Priority
                 </label>
                 <select
+                  id={`${uid}-priority`}
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as Priority)}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-primary"
@@ -299,7 +356,7 @@ export function TaskModal({
             />
           )}
 
-          {error && <p className="text-sm text-danger">{error}</p>}
+          {error && <p className="text-sm text-danger-ink">{error}</p>}
         </div>
 
         <div className="mt-6 flex items-center justify-between gap-2">

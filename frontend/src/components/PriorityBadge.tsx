@@ -1,9 +1,9 @@
 import type { Priority } from "../types/item";
 
 const styles: Record<Priority, string> = {
-  HIGH: "bg-red-50 text-danger dark:bg-red-950",
-  MEDIUM: "bg-amber-50 text-warning dark:bg-amber-950",
-  LOW: "bg-blue-50 text-primary dark:bg-blue-950",
+  HIGH: "bg-red-50 text-danger-ink dark:bg-red-950",
+  MEDIUM: "bg-amber-50 text-warning-ink dark:bg-amber-950",
+  LOW: "bg-blue-50 text-primary-ink dark:bg-blue-950",
 };
 
 const labels: Record<Priority, string> = {

@@ -35,7 +35,7 @@ export function PlanMyDay({ onOpenItem }: { onOpenItem: (item: Item) => void }) 
           Running on your computer, this can take a moment…
         </span>
       )}
-      {error && <p className="mt-2 text-sm text-danger">{error}</p>}
+      {error && <p className="mt-2 text-sm text-danger-ink">{error}</p>}
 
       {plan && (
         <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-4" role="region" aria-label="Daily plan">

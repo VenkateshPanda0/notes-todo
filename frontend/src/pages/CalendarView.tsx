@@ -199,7 +199,7 @@ export function CalendarView() {
         </span>
       </div>
 
-      {error && <p className="py-4 text-sm text-danger">{error}</p>}
+      {error && <p className="py-4 text-sm text-danger-ink">{error}</p>}
       {loading && (
         <p className="py-8 text-center text-sm text-[var(--text-secondary)]">
           Loading...
@@ -235,31 +235,47 @@ export function CalendarView() {
                   <div
                     key={key}
                     onClick={() => handleOpenNewOnDay(day)}
-                    className={`min-h-[110px] cursor-pointer border-r border-[var(--border)] p-2 last:border-r-0 hover:bg-[var(--border)]/20 ${
-                      inMonth ? "" : "opacity-40"
+                    className={`min-h-[110px] cursor-pointer border-r border-[var(--border)] p-2 last:border-r-0 hover:bg-[var(--border)]/30 ${
+                      // Days from neighbouring months get a tint instead of being faded, which keeps
+                      // their numbers readable.
+                      inMonth ? "" : "bg-[var(--border)]/20"
                     }`}
                   >
-                    <div
-                      className={`mb-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenNewOnDay(day);
+                      }}
+                      aria-label={`Add a task on ${day.toLocaleDateString(undefined, {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                      })}`}
+                      aria-current={isSameDay(day, today) ? "date" : undefined}
+                      className={`mb-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
                         isSameDay(day, today)
                           ? "bg-primary text-white"
-                          : "text-[var(--text-secondary)]"
+                          : inMonth
+                            ? "font-medium text-[var(--text)]"
+                            : "text-[var(--text-secondary)]"
                       }`}
                     >
                       {day.getDate()}
-                    </div>
+                    </button>
                     <div className="space-y-1">
                       {visible.map((item) => (
-                        <div
+                        <button
+                          type="button"
                           key={item.id}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleOpenEdit(item);
                           }}
-                          className={`flex items-center gap-1 truncate rounded px-1.5 py-0.5 text-xs ${
+                          className={`flex w-full items-center gap-1 truncate rounded px-1.5 py-0.5 text-left text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
                             item.completed
                               ? "text-[var(--text-secondary)] line-through"
-                              : "bg-primary/10 text-primary"
+                              : "bg-primary/10 text-primary-ink"
                           }`}
                           title={item.title}
                         >
@@ -267,7 +283,7 @@ export function CalendarView() {
                             className={`h-1.5 w-1.5 shrink-0 rounded-full ${PRIORITY_DOT[item.priority]}`}
                           />
                           <span className="truncate">{item.title}</span>
-                        </div>
+                        </button>
                       ))}
                       {overflow > 0 && (
                         <div className="px-1.5 text-xs text-[var(--text-secondary)]">

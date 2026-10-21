@@ -113,7 +113,7 @@ export function QuickAdd({ defaultType, onCreated, inputRef }: QuickAddProps) {
             </span>
           )}
           {shown.tags.map((tag) => (
-            <span key={tag} className="rounded-full bg-primary/10 px-2.5 py-0.5 font-medium text-primary">
+            <span key={tag} className="rounded-full bg-primary/10 px-2.5 py-0.5 font-medium text-primary-ink">
               #{tag}
             </span>
           ))}
@@ -121,7 +121,7 @@ export function QuickAdd({ defaultType, onCreated, inputRef }: QuickAddProps) {
         </div>
       )}
 
-      {error && <p className="mt-2 text-xs text-danger">{error}</p>}
+      {error && <p className="mt-2 text-xs text-danger-ink">{error}</p>}
     </div>
   );
 }

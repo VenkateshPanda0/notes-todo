@@ -34,7 +34,7 @@ export function Sidebar() {
         <span className="font-semibold text-[var(--text)]">TaskFlow</span>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1">
+      <nav aria-label="Main" className="flex flex-1 flex-col gap-1">
         {items.map((item) => (
           <NavLink
             key={item.to}
@@ -43,7 +43,7 @@ export function Sidebar() {
             className={({ isActive }) =>
               `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-primary/10 text-primary-ink"
                   : "text-[var(--text-secondary)] hover:bg-[var(--border)]/40"
               }`
             }
@@ -58,7 +58,7 @@ export function Sidebar() {
         className={({ isActive }) =>
           `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
             isActive
-              ? "bg-primary/10 text-primary"
+              ? "bg-primary/10 text-primary-ink"
               : "text-[var(--text-secondary)] hover:bg-[var(--border)]/40"
           }`
         }

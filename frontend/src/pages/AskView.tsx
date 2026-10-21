@@ -88,7 +88,7 @@ export function AskView() {
       {unavailableReason && (
         <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-[var(--text)] dark:bg-amber-950">
           {unavailableReason}{" "}
-          <Link to="/settings" className="text-primary underline">
+          <Link to="/settings" className="text-primary-ink underline">
             Open Settings
           </Link>
         </p>
@@ -112,7 +112,7 @@ export function AskView() {
                   Searching your notes… running on your computer, this can take a moment.
                 </p>
               )}
-              {turn.error && <p className="text-sm text-danger">{turn.error}</p>}
+              {turn.error && <p className="text-sm text-danger-ink">{turn.error}</p>}
               {turn.answer !== undefined && (
                 <>
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--text)]" data-testid="answer">
@@ -124,7 +124,7 @@ export function AskView() {
                           key={i}
                           onClick={() => openItem(item)}
                           title={item.title}
-                          className="mx-0.5 rounded bg-primary/10 px-1 text-xs font-semibold text-primary hover:bg-primary/20"
+                          className="mx-0.5 rounded bg-primary/10 px-1 text-xs font-semibold text-primary-ink hover:bg-primary/20"
                         >
                           {match![1]}
                         </button>
@@ -145,7 +145,7 @@ export function AskView() {
                             onClick={() => openItem(item)}
                             className="rounded-full border border-[var(--border)] px-2.5 py-0.5 text-xs text-[var(--text)] hover:border-primary/50"
                           >
-                            <span className="mr-1 font-semibold text-primary">{i + 1}</span>
+                            <span className="mr-1 font-semibold text-primary-ink">{i + 1}</span>
                             {item.type === "NOTE" ? "📝" : "✓"} {item.title}
                             <span className="ml-1 opacity-60">{(score * 100).toFixed(0)}%</span>
                           </button>

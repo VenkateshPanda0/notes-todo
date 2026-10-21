@@ -5,6 +5,11 @@
 
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
+  /* Brand blue for TEXT: the fill colour above fails 4.5:1 contrast on tinted/dark backgrounds. */
+  --color-primary-ink: #1d4ed8;
+  --color-danger-ink: #b91c1c;
+  --color-warning-ink: #b45309;
+  --color-success-ink: #15803d;
   --color-success: #16a34a;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
@@ -15,10 +20,14 @@
   --bg-elevated: #ffffff;
   --border: #e5e7eb;
   --text: #111827;
-  --text-secondary: #6b7280;
+  --text-secondary: #5b6472;
 }
 
 .dark {
+  --color-primary-ink: #93b4ff;
+  --color-danger-ink: #fca5a5;
+  --color-warning-ink: #fcd34d;
+  --color-success-ink: #86efac;
   --bg: #0f1115;
   --bg-elevated: #171a21;
   --border: #2a2e37;
