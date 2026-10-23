@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { CommandPalette } from "./components/CommandPalette";
 import { Sidebar } from "./components/Sidebar";
 import { AiProvider } from "./contexts/AiProvider";
 import { LockProvider, useLock } from "./contexts/LockContext";
@@ -36,6 +37,7 @@ function AppShell() {
             Skip to content
           </a>
           <Sidebar />
+          <CommandPalette />
           <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
             <Routes>
               <Route path="/" element={<Dashboard view="all" />} />

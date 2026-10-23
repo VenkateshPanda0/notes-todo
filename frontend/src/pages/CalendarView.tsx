@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { itemsApi } from "../api/client";
 import { Button } from "../components/Button";
 import { TaskModal } from "../components/TaskModal";
+import { useItemsChangedRefresh } from "../hooks/useItemsChangedRefresh";
 import type { Item, ItemType, Priority } from "../types/item";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -51,6 +52,13 @@ export function CalendarView() {
   useEffect(() => {
     load();
   }, []);
+
+  useItemsChangedRefresh(() => {
+    itemsApi
+      .list({ type: "TODO" })
+      .then(setItems)
+      .catch(() => {});
+  });
 
   const itemsByDay = useMemo(() => {
     const map = new Map<string, Item[]>();

@@ -7,6 +7,7 @@ import { QuickAdd } from "../components/QuickAdd";
 import { TaskModal } from "../components/TaskModal";
 import { TaskRow } from "../components/TaskRow";
 import { isOverdue, isToday, isUpcoming } from "../lib/dates";
+import { useItemsChangedRefresh } from "../hooks/useItemsChangedRefresh";
 import { normalizeTitle } from "../lib/markdown";
 import type { Item, ItemType, Priority } from "../types/item";
 
@@ -46,6 +47,14 @@ export function Dashboard({ view = "all" }: DashboardProps) {
   useEffect(() => {
     load();
   }, []);
+
+  // Items created elsewhere (the command palette) show up without a reload or a loading flash.
+  useItemsChangedRefresh(() => {
+    itemsApi
+      .list()
+      .then(setItems)
+      .catch(() => {});
+  });
 
   // Keyboard shortcuts: "/" focuses quick add, "n" opens the full form. Ignored while typing.
   useEffect(() => {

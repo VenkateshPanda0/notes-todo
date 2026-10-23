@@ -12,6 +12,7 @@ import {
 import type { Simulation, SimulationLinkDatum, SimulationNodeDatum } from "d3-force";
 import { graphApi, itemsApi } from "../api/client";
 import { TaskModal } from "../components/TaskModal";
+import { useItemsChangedRefresh } from "../hooks/useItemsChangedRefresh";
 import { normalizeTitle } from "../lib/markdown";
 import type { GraphData, GraphNodeData, Item, ItemType, Priority } from "../types/item";
 
@@ -74,6 +75,10 @@ export function GraphView() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useItemsChangedRefresh(() => {
+    void load();
+  });
 
   // Nodes actually shown (optionally hiding items with no links).
   const visible = useMemo(() => {

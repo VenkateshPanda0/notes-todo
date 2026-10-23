@@ -18,6 +18,12 @@ Built with **React + TypeScript**, **FastAPI**, **SQLAlchemy**, and **SQLite**, 
 
 ![All Tasks](screenshots/all-tasks.jpg)
 
+### Command Palette
+
+Press **Ctrl/⌘ + K** anywhere to jump to a page, find any note or todo, or capture a task in one line.
+
+![Command palette](screenshots/command-palette.png)
+
 ### Quick Add
 
 Type naturally and see how it's understood before you press Enter.
@@ -95,7 +101,8 @@ When the database is encrypted, nothing is readable until the password is entere
 - **Graph view** — an interactive map of your links: hover to highlight neighbours, search to spotlight, drag to pin, scroll to zoom, click to open. Links to notes that don't exist yet appear as dashed placeholders you can click to create.
 - **Local AI (optional, off by default)** — summarize a note, **ask questions about your own notes** (answers cite their sources), get a short **Plan my day** from overdue and due-soon todos, and find **related notes** by meaning. Runs on your computer through [Ollama](https://ollama.com); see [Local AI](#local-ai).
 - **Tags** — add `#tags` to any item, then filter by tag with one click. Quick Add understands them too.
-- **Keyboard shortcuts** — `/` focuses Quick Add, `n` opens the full task form, `Esc` closes it.
+- **Command palette** — `Ctrl/⌘ + K` from anywhere: jump to any page, search every note and todo (titles and text), or type a task to add with the same natural-language parsing as Quick Add. Choose **Keyboard shortcuts** in it for the full list.
+- **Keyboard shortcuts** — `Ctrl/⌘ + K` palette, `/` focuses Quick Add, `n` opens the full task form, `Esc` closes dialogs.
 - **Todos & Notes** — explicitly choose the item type.
 - **Title & Description** — optional descriptions for both.
 - **Priority** — Low, Medium, or High for Todos.
