@@ -428,7 +428,7 @@ def test_many_notes_are_embedded_in_batches(client, fake):
     assert [len(b) for b in fake.embed_calls] == [32, 32, 7]
 
 
-def test_deleting_an_item_removes_its_cached_embedding(client, fake, db_session_factory):
+def test_a_trashed_item_keeps_its_embedding_until_it_is_purged_but_never_shows_up(client, fake, db_session_factory):
     from backend.app.models import ItemEmbedding
 
     a = make(client, "Cat")
@@ -438,8 +438,12 @@ def test_deleting_an_item_removes_its_cached_embedding(client, fake, db_session_
 
     client.delete(f"/api/items/{b['id']}")
 
+    assert titles(client.get(f"/api/ai/related/{a['id']}")) == []  # the trashed note is not suggested
     with db_session_factory() as db:
-        assert [e.item_id for e in db.query(ItemEmbedding).all()] == [a["id"]]
+        assert sorted(e.item_id for e in db.query(ItemEmbedding).all()) == [a["id"], b["id"]]  # kept for a restore
+    client.delete(f"/api/items/{b['id']}/permanent")
+    with db_session_factory() as db:
+        assert [e.item_id for e in db.query(ItemEmbedding).all()] == [a["id"]]  # gone for good
 
 
 def test_related_needs_an_embedding_model_and_an_existing_item(client, fake):
@@ -564,3 +568,29 @@ def test_ask_requires_the_session_when_locked(client, fake):
     client.post("/api/auth/setup", json={"password": "secret1"})
 
     assert ask(client).status_code == 401
+
+
+# --- the Trash must never leak into AI features ---
+
+
+def test_trashed_items_are_excluded_from_ai_answers_and_plans(client, fake):
+    from datetime import date
+
+    live = make(client, "Cat care", "feed the cat")
+    gone = make(client, "Secret cat", "TRASHED-CONTENT cat")
+    overdue = make(client, "Pay the bill", type="TODO", due_date=date(2020, 1, 1).isoformat())
+    trashed_todo = make(client, "Trashed overdue", type="TODO", due_date=date(2020, 1, 1).isoformat())
+    for item in (gone, trashed_todo):
+        client.delete(f"/api/items/{item['id']}")
+    enable(client)
+
+    answer = ask(client).json()
+    plan = client.post("/api/ai/plan-day").json()
+
+    titles = [s["item"]["title"] for s in answer["sources"]]
+    assert titles and set(titles) <= {"Cat care", "Pay the bill"}
+    assert "TRASHED-CONTENT" not in fake.chat_calls[0][2]
+    assert all("Secret cat" != s["item"]["title"] for s in answer["sources"])
+    assert [i["title"] for i in plan["items"]] == ["Pay the bill"]
+    assert "Trashed overdue" not in fake.chat_calls[-1][2]
+    assert live["id"] and overdue["id"]

@@ -9,6 +9,7 @@ import { TaskRow } from "../components/TaskRow";
 import { isOverdue, isToday, isUpcoming } from "../lib/dates";
 import { useItemsChangedRefresh } from "../hooks/useItemsChangedRefresh";
 import { normalizeTitle } from "../lib/markdown";
+import { removeWithUndo } from "../lib/trash";
 import type { Item, ItemType, Priority } from "../types/item";
 
 type Filter = "all" | "active" | "completed";
@@ -244,7 +245,7 @@ export function Dashboard({ view = "all" }: DashboardProps) {
 
   const handleDelete = async () => {
     if (!editingItem) return;
-    await itemsApi.remove(editingItem.id);
+    await removeWithUndo(editingItem);
     setItems((prev) => prev.filter((i) => i.id !== editingItem.id));
     setModalOpen(false);
   };

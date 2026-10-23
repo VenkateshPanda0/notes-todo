@@ -108,6 +108,7 @@ When the database is encrypted, nothing is readable until the password is entere
 - **Priority** — Low, Medium, or High for Todos.
 - **Due Dates** — optional due dates for Todos.
 - **Recurring todos** — repeat daily, every weekday, weekly, monthly, yearly or every N days/weeks/months/years. Completing a repeating todo creates the next one (month-end dates don't drift, and an overdue series catches up instead of piling up overdue copies).
+- **Trash with Undo** — deleting moves an item to the Trash for 30 days; click **Undo** right after, or Restore / Delete forever from the Trash page. Trashed items stay out of search, the graph, AI answers and exports.
 - **Complete / Reopen** — completion state persists across views.
 - **Todo ↔ Note Conversion** — change an item's type after creation.
 - **All Tasks** — view, search, and filter All / Active / Completed Todos.
@@ -546,6 +547,7 @@ TaskFlow focuses on this workflow rather than becoming a full project-management
 - [x] Markdown notes, tags, and note ↔ todo links with backlinks
 - [x] Interactive graph view of linked notes
 - [x] Recurring todos
+- [x] Trash with restore and undo
 - [ ] Desktop reminders
 - [x] Versioned database migrations (existing databases upgrade in place)
 

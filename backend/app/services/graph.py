@@ -52,7 +52,7 @@ def build_graph(db: Session) -> Graph:
     Links to titles that don't exist yet become "missing" placeholder nodes. When several items
     share a title, links resolve to the oldest one.
     """
-    items = list(db.execute(select(Item).order_by(Item.id)).scalars().all())
+    items = list(db.execute(select(Item).where(Item.deleted_at.is_(None)).order_by(Item.id)).scalars().all())
 
     nodes: dict[str, GraphNode] = {}
     by_title: dict[str, str] = {}

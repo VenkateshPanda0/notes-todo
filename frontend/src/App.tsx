@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { CommandPalette } from "./components/CommandPalette";
+import { ToastHost } from "./components/ToastHost";
 import { Sidebar } from "./components/Sidebar";
 import { AiProvider } from "./contexts/AiProvider";
 import { LockProvider, useLock } from "./contexts/LockContext";
@@ -10,6 +11,7 @@ import { CalendarView } from "./pages/CalendarView";
 import { GraphView } from "./pages/GraphView";
 import { LockScreen } from "./pages/LockScreen";
 import { Settings } from "./pages/Settings";
+import { TrashView } from "./pages/TrashView";
 
 function AppShell() {
   const { loading, unlocked } = useLock();
@@ -38,6 +40,7 @@ function AppShell() {
           </a>
           <Sidebar />
           <CommandPalette />
+          <ToastHost />
           <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
             <Routes>
               <Route path="/" element={<Dashboard view="all" />} />
@@ -48,6 +51,7 @@ function AppShell() {
               <Route path="/calendar" element={<CalendarView />} />
               <Route path="/ask" element={<AskView />} />
               <Route path="/graph" element={<GraphView />} />
+              <Route path="/trash" element={<TrashView />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </main>

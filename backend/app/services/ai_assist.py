@@ -95,7 +95,9 @@ def collect_plan_items(db: Session, today: date) -> list[Item]:
     """Open todos worth planning around: overdue, due soon, and undated high-priority ones."""
     soon = today + timedelta(days=3)
     todos = db.execute(
-        select(Item).where(Item.item_type == ItemType.TODO, Item.completed.is_(False))
+        select(Item).where(
+            Item.item_type == ItemType.TODO, Item.completed.is_(False), Item.deleted_at.is_(None)
+        )
     ).scalars()
 
     def relevant(item: Item) -> bool:
@@ -191,7 +193,7 @@ def related_items(
     settings = _require_enabled(db)
     target = get_item(db, item_id)
     model = _embed_model(client, settings)
-    items = list(db.execute(select(Item)).scalars().all())
+    items = list(db.execute(select(Item).where(Item.deleted_at.is_(None))).scalars().all())
     vectors = _ensure_embeddings(db, client, items, model)
 
     anchor = vectors[target.id]
@@ -222,7 +224,7 @@ def ask_notes(
     those numbered sources. Sources are returned so the UI can show exactly what the answer used.
     """
     settings = _require_enabled(db)
-    items = list(db.execute(select(Item)).scalars().all())
+    items = list(db.execute(select(Item).where(Item.deleted_at.is_(None))).scalars().all())
     if not items:
         return "You don't have any notes or todos yet, so there is nothing to search.", "", []
 

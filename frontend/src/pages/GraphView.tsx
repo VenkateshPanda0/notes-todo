@@ -14,6 +14,7 @@ import { graphApi, itemsApi } from "../api/client";
 import { TaskModal } from "../components/TaskModal";
 import { useItemsChangedRefresh } from "../hooks/useItemsChangedRefresh";
 import { normalizeTitle } from "../lib/markdown";
+import { removeWithUndo } from "../lib/trash";
 import type { GraphData, GraphNodeData, Item, ItemType, Priority } from "../types/item";
 
 const WIDTH = 960;
@@ -309,7 +310,7 @@ export function GraphView() {
 
   const handleDelete = async () => {
     if (!editingItem) return;
-    await itemsApi.remove(editingItem.id);
+    await removeWithUndo(editingItem);
     setModalOpen(false);
     await load();
   };

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -17,6 +17,13 @@ class ItemNotFoundError(Exception):
         super().__init__(f"Item {item_id} not found")
 
 
+TRASH_DAYS = 30
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc)  # a function so tests can pin "now"
+
+
 def _today() -> date:
     return date.today()  # a function so tests can pin "today"
 
@@ -31,6 +38,7 @@ def _spawn_next_occurrence(db: Session, item: Item) -> Item | None:
         select(Item.id).where(
             Item.item_type == ItemType.TODO,
             Item.completed.is_(False),
+            Item.deleted_at.is_(None),
             Item.title == item.title,
             Item.recurrence == item.recurrence,
             Item.due_date == due,
@@ -92,7 +100,7 @@ def list_items(
     tag: str | None = None,
 ) -> list[Item]:
     """Return items, optionally filtered by type, completion state and/or tag."""
-    stmt = select(Item).order_by(Item.created_at.desc())
+    stmt = select(Item).where(Item.deleted_at.is_(None)).order_by(Item.created_at.desc())
     if tag is not None:
         stmt = stmt.where(Item.tags.any(Tag.name == tag.strip().lstrip("#").lower()))
     if item_type is not None:
@@ -102,10 +110,10 @@ def list_items(
     return list(db.execute(stmt).scalars().all())
 
 
-def get_item(db: Session, item_id: int) -> Item:
-    """Fetch a single item by id or raise ItemNotFoundError."""
+def get_item(db: Session, item_id: int, *, include_deleted: bool = False) -> Item:
+    """Fetch a single item by id or raise ItemNotFoundError. Trashed items count as missing."""
     item = db.get(Item, item_id)
-    if item is None:
+    if item is None or (item.deleted_at is not None and not include_deleted):
         raise ItemNotFoundError(item_id)
     return item
 
@@ -137,10 +145,60 @@ def update_item(db: Session, item_id: int, payload: ItemUpdate) -> Item:
 
 
 def delete_item(db: Session, item_id: int) -> None:
-    """Remove an item permanently."""
+    """Move an item to the Trash. It can be restored for TRASH_DAYS."""
     item = get_item(db, item_id)
+    item.deleted_at = _now()
+    db.commit()
+
+
+def list_trash(db: Session) -> list[Item]:
+    """Trashed items, most recently deleted first."""
+    stmt = select(Item).where(Item.deleted_at.is_not(None)).order_by(Item.deleted_at.desc(), Item.id.desc())
+    return list(db.execute(stmt).scalars().all())
+
+
+def restore_item(db: Session, item_id: int) -> Item:
+    """Bring an item back from the Trash."""
+    item = get_item(db, item_id, include_deleted=True)
+    if item.deleted_at is None:
+        raise ItemNotFoundError(item_id)  # nothing to restore
+    item.deleted_at = None
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+def purge_item(db: Session, item_id: int) -> None:
+    """Delete an item that is already in the Trash for good."""
+    item = get_item(db, item_id, include_deleted=True)
+    if item.deleted_at is None:
+        raise ItemNotFoundError(item_id)  # only trashed items can be purged this way
     db.delete(item)
     db.commit()
+
+
+def empty_trash(db: Session) -> int:
+    """Permanently delete everything in the Trash. Returns how many items went."""
+    items = list_trash(db)
+    for item in items:
+        db.delete(item)
+    db.commit()
+    return len(items)
+
+
+def purge_expired_trash(db: Session, days: int = TRASH_DAYS) -> int:
+    """Permanently delete items that have been in the Trash longer than `days`."""
+    cutoff = _now() - timedelta(days=days)
+    expired = [i for i in list_trash(db) if _aware(i.deleted_at) < cutoff]
+    for item in expired:
+        db.delete(item)
+    db.commit()
+    return len(expired)
+
+
+def _aware(value: datetime) -> datetime:
+    """SQLite hands datetimes back without a timezone; ours are always UTC."""
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
 def set_completed(db: Session, item_id: int, completed: bool) -> Item:
@@ -171,6 +229,8 @@ def list_tags(db: Session) -> list[tuple[str, int]]:
     rows = db.execute(
         select(Tag.name, func.count(item_tags.c.item_id))
         .join(item_tags, item_tags.c.tag_id == Tag.id)
+        .join(Item, Item.id == item_tags.c.item_id)
+        .where(Item.deleted_at.is_(None))
         .group_by(Tag.id)
         .order_by(Tag.name)
     ).all()
@@ -191,7 +251,7 @@ def get_backlinks(db: Session, item_id: int) -> list[Item]:
     content = func.lower(Item.content)
     stmt = (
         select(Item)
-        .where(Item.id != item.id)
+        .where(Item.id != item.id, Item.deleted_at.is_(None))
         .where(
             content.like(f"%[[{needle}]]%", escape="\\")
             | content.like(f"%[[{needle}|%", escape="\\")

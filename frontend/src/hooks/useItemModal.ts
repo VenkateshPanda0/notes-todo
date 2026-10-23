@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { itemsApi } from "../api/client";
 import { normalizeTitle } from "../lib/markdown";
+import { removeWithUndo } from "../lib/trash";
 import type { Item, ItemType, Priority } from "../types/item";
 
 interface SavePayload {
@@ -45,7 +46,7 @@ export function useItemModal(options: { titles?: string[]; onChanged?: () => voi
     },
     onDelete: item
       ? async () => {
-          await itemsApi.remove(item.id);
+          await removeWithUndo(item);
           setOpen(false);
           await onChanged?.();
         }

@@ -58,7 +58,7 @@ class BackupFileError(ValueError):
 
 
 def export_json(db: Session) -> dict:
-    items = db.execute(select(Item).order_by(Item.id)).scalars().all()
+    items = db.execute(select(Item).where(Item.deleted_at.is_(None)).order_by(Item.id)).scalars().all()
     payload = ExportFile(
         exported_at=datetime.now(timezone.utc),
         items=[
@@ -137,7 +137,7 @@ def _front_matter(item: Item) -> str:
 
 
 def export_markdown_zip(db: Session) -> bytes:
-    items = db.execute(select(Item).order_by(Item.id)).scalars().all()
+    items = db.execute(select(Item).where(Item.deleted_at.is_(None)).order_by(Item.id)).scalars().all()
     used: set[str] = set()
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -293,7 +293,8 @@ def import_items(db: Session, items: list[ExportItem], mode: str) -> tuple[int, 
             seen: set = set()
         else:
             seen = {
-                _key(i.item_type, i.title, i.content) for i in db.execute(select(Item)).scalars().all()
+                _key(i.item_type, i.title, i.content)
+                for i in db.execute(select(Item).where(Item.deleted_at.is_(None))).scalars().all()
             }
         imported = skipped = 0
         for data in items:

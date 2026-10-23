@@ -13,6 +13,8 @@ export interface Item {
   tags: string[];
   created_at: string;
   updated_at: string;
+  /** Set while the item is in the Trash. */
+  deleted_at?: string | null;
 }
 
 export interface ItemCreatePayload {

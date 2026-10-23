@@ -10,6 +10,7 @@ const navItems = [
   { to: "/notes", label: "Notes" },
   { to: "/calendar", label: "Calendar" },
   { to: "/graph", label: "Graph" },
+  { to: "/trash", label: "Trash" },
 ];
 
 function dueDescription(due: { today: number; overdue: number }): string {

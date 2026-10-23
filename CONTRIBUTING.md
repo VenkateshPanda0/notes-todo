@@ -52,7 +52,7 @@ A database from a *newer* TaskFlow than the running app is refused rather than r
 
 ## The database layer
 
-`backend/app/db/manager.py` owns the connection: a plain database opens at startup, an encrypted one stays closed until the password arrives (`get_db` yields `None` and `require_unlocked` answers 401). Don't create engines elsewhere. Encryption (`db/crypto.py`) must keep three promises: never modify the source file while converting, always verify a converted file before swapping it in, and never accept an empty password (SQLCipher treats `''` as "no encryption"). Tests for it need `pip install sqlcipher3-wheels` and are slow on purpose (SQLCipher's key derivation is expensive).
+`backend/app/db/manager.py` owns the connection: a plain database opens at startup, an encrypted one stays closed until the password arrives (`get_db` yields `None` and `require_unlocked` answers 401). Don't create engines elsewhere. Deleting an item is a *soft* delete (`deleted_at`, purged after 30 days): any new query over items must filter `deleted_at IS NULL`. Encryption (`db/crypto.py`) must keep three promises: never modify the source file while converting, always verify a converted file before swapping it in, and never accept an empty password (SQLCipher treats `''` as "no encryption"). Tests for it need `pip install sqlcipher3-wheels` and are slow on purpose (SQLCipher's key derivation is expensive).
 
 ## Guidelines
 

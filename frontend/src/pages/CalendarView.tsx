@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { itemsApi } from "../api/client";
+import { removeWithUndo } from "../lib/trash";
 import { Button } from "../components/Button";
 import { TaskModal } from "../components/TaskModal";
 import { useItemsChangedRefresh } from "../hooks/useItemsChangedRefresh";
@@ -142,7 +143,7 @@ export function CalendarView() {
 
   const handleDelete = async () => {
     if (!editingItem) return;
-    await itemsApi.remove(editingItem.id);
+    await removeWithUndo(editingItem);
     setItems((prev) => prev.filter((i) => i.id !== editingItem.id));
     setModalOpen(false);
   };

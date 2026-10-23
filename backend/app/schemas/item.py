@@ -76,6 +76,7 @@ class ItemRead(BaseModel):
     tags: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
+    deleted_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 

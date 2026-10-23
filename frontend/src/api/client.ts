@@ -146,8 +146,16 @@ export const itemsApi = {
       method: "PATCH",
       body: JSON.stringify(payload),
     }),
+  /** Moves the item to the Trash (it can be restored for 30 days). */
   remove: (id: number) =>
     mutate<void>(`/api/items/${id}`, { method: "DELETE" }),
+  listTrash: () => request<Item[]>("/api/items/trash"),
+  restore: (id: number) =>
+    mutate<Item>(`/api/items/${id}/restore`, { method: "POST" }),
+  purge: (id: number) =>
+    mutate<void>(`/api/items/${id}/permanent`, { method: "DELETE" }),
+  emptyTrash: () =>
+    mutate<{ deleted: number }>("/api/items/trash", { method: "DELETE" }),
   complete: (id: number) =>
     mutate<Item>(`/api/items/${id}/complete`, { method: "POST" }),
   reopen: (id: number) =>

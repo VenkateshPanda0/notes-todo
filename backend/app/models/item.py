@@ -42,6 +42,9 @@ class Item(Base):
     due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     # Repeat rule such as "1w" (see services/recurrence.py); only meaningful for todos.
     recurrence: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    # When the item was moved to the Trash (None = not deleted). Trashed items are hidden everywhere
+    # and can be restored until they are purged after TRASH_DAYS.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Day of month a monthly/yearly series is anchored to, so month-end dates don't drift.
     recurrence_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

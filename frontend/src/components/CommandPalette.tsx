@@ -24,6 +24,7 @@ const COMMANDS: Command[] = [
   { id: "go-notes", label: "Go to Notes", keywords: "markdown writing", run: "navigate", path: "/notes" },
   { id: "go-calendar", label: "Go to Calendar", keywords: "month dates", run: "navigate", path: "/calendar" },
   { id: "go-graph", label: "Go to Graph", keywords: "links map network", run: "navigate", path: "/graph" },
+  { id: "go-trash", label: "Go to Trash", keywords: "deleted restore recover bin", run: "navigate", path: "/trash" },
   { id: "go-settings", label: "Go to Settings", keywords: "backup encryption password theme ai", run: "navigate", path: "/settings" },
   { id: "help", label: "Keyboard shortcuts", keywords: "help keys hotkeys", run: "help" },
 ];

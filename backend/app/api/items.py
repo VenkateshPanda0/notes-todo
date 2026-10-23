@@ -46,6 +46,18 @@ def list_items(
     return [ItemRead.model_validate(item) for item in items]
 
 
+@router.get("/trash", response_model=list[ItemRead])
+def list_trash(db: Session = Depends(get_db)) -> list[ItemRead]:
+    """Deleted items, newest deletion first. They are removed for good after 30 days."""
+    return [ItemRead.model_validate(item) for item in items_service.list_trash(db)]
+
+
+@router.delete("/trash")
+def empty_trash(db: Session = Depends(get_db)) -> dict[str, int]:
+    """Permanently delete everything in the Trash."""
+    return {"deleted": items_service.empty_trash(db)}
+
+
 @router.get("/{item_id}", response_model=ItemRead)
 def get_item(item_id: int, db: Session = Depends(get_db)) -> ItemRead:
     """Fetch a single item by id."""
@@ -83,6 +95,25 @@ def delete_item(item_id: int, db: Session = Depends(get_db)) -> None:
     """Permanently delete an item."""
     try:
         items_service.delete_item(db, item_id)
+    except ItemNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/{item_id}/restore", response_model=ItemRead)
+def restore_item(item_id: int, db: Session = Depends(get_db)) -> ItemRead:
+    """Bring an item back from the Trash."""
+    try:
+        item = items_service.restore_item(db, item_id)
+    except ItemNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return ItemRead.model_validate(item)
+
+
+@router.delete("/{item_id}/permanent", status_code=204)
+def purge_item(item_id: int, db: Session = Depends(get_db)) -> None:
+    """Permanently delete an item that is in the Trash."""
+    try:
+        items_service.purge_item(db, item_id)
     except ItemNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

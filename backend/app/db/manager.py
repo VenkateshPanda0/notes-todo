@@ -132,10 +132,21 @@ class DatabaseManager:
 
         if os.getenv("TASKFLOW_DISABLE_AUTO_BACKUP") != "1":
             run_auto_backup(self.engine)
+        self._purge_old_trash()
         if self.encrypted and self.path:  # the encrypted file just opened, so any plain leftover can go
             leftover = Path(self.path + PLAIN_LEFTOVER)
             if leftover.exists():
                 crypto.secure_delete(leftover)
+
+    def _purge_old_trash(self) -> None:
+        """Permanently remove items that have sat in the Trash for more than 30 days."""
+        from ..services.items import purge_expired_trash
+
+        try:
+            with Session(self.engine) as db:
+                purge_expired_trash(db)
+        except Exception:  # noqa: BLE001 - housekeeping must never stop the app from starting
+            log.exception("Could not clean up the Trash")
 
     def unlock(self, password: str) -> None:
         """Open an encrypted database. Raises WrongPasswordError for a bad password."""
