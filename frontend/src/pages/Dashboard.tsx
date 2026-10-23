@@ -6,11 +6,13 @@ import { PlanMyDay } from "../components/PlanMyDay";
 import { QuickAdd } from "../components/QuickAdd";
 import { TaskModal } from "../components/TaskModal";
 import { TaskRow } from "../components/TaskRow";
-import { isToday, isUpcoming } from "../lib/dates";
+import { isOverdue, isToday, isUpcoming } from "../lib/dates";
 import { normalizeTitle } from "../lib/markdown";
 import type { Item, ItemType, Priority } from "../types/item";
 
 type Filter = "all" | "active" | "completed";
+
+const PRIORITY_RANK: Record<Priority, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
 
 interface DashboardProps {
   view?: "all" | "today" | "upcoming" | "completed" | "notes";
@@ -94,7 +96,10 @@ export function Dashboard({ view = "all" }: DashboardProps) {
       result = result.filter((i) => i.type === "TODO");
 
       if (view === "today") {
-        result = result.filter((i) => isToday(i.due_date));
+        // Today is "what needs attention now": due today, plus anything open that is already overdue.
+        result = result.filter(
+          (i) => isToday(i.due_date) || (!i.completed && isOverdue(i.due_date)),
+        );
       } else if (view === "upcoming") {
         result = result.filter((i) => isUpcoming(i.due_date));
       } else if (view === "completed") {
@@ -120,6 +125,40 @@ export function Dashboard({ view = "all" }: DashboardProps) {
 
     return result;
   }, [items, view, filter, search, effectiveTag]);
+
+  // The Today view lists overdue items first, under their own heading.
+  // Most overdue first; today's items by priority, finished ones last.
+  const overdueRows = useMemo(
+    () =>
+      view === "today"
+        ? filtered
+            .filter((i) => !i.completed && isOverdue(i.due_date))
+            .sort((a, b) => (a.due_date ?? "").localeCompare(b.due_date ?? ""))
+        : [],
+    [filtered, view],
+  );
+  const dueTodayRows = useMemo(
+    () =>
+      view === "today"
+        ? filtered
+            .filter((i) => !overdueRows.includes(i))
+            .sort(
+              (a, b) =>
+                Number(a.completed) - Number(b.completed) ||
+                PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority],
+            )
+        : [],
+    [filtered, overdueRows, view],
+  );
+
+  const renderRow = (item: Item) => (
+    <TaskRow
+      key={item.id}
+      item={item}
+      onToggleComplete={handleToggleComplete}
+      onClick={handleOpenEdit}
+    />
+  );
 
   const knownTitles = useMemo(
     () => new Set(items.map((i) => normalizeTitle(i.title))),
@@ -290,16 +329,26 @@ export function Dashboard({ view = "all" }: DashboardProps) {
         </p>
       )}
 
-      <div className="space-y-2">
-        {filtered.map((item) => (
-          <TaskRow
-            key={item.id}
-            item={item}
-            onToggleComplete={handleToggleComplete}
-            onClick={handleOpenEdit}
-          />
-        ))}
-      </div>
+      {view === "today" && overdueRows.length > 0 ? (
+        <>
+          <section aria-label="Overdue" className="mb-6">
+            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-danger-ink">
+              Overdue · {overdueRows.length}
+            </h2>
+            <div className="space-y-2">{overdueRows.map(renderRow)}</div>
+          </section>
+          {dueTodayRows.length > 0 && (
+            <section aria-label="Due today">
+              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+                Today · {dueTodayRows.length}
+              </h2>
+              <div className="space-y-2">{dueTodayRows.map(renderRow)}</div>
+            </section>
+          )}
+        </>
+      ) : (
+        <div className="space-y-2">{filtered.map(renderRow)}</div>
+      )}
 
       <TaskModal
         open={modalOpen}

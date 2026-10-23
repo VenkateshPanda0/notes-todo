@@ -104,7 +104,7 @@ When the database is encrypted, nothing is readable until the password is entere
 - **Complete / Reopen** — completion state persists across views.
 - **Todo ↔ Note Conversion** — change an item's type after creation.
 - **All Tasks** — view, search, and filter All / Active / Completed Todos.
-- **Today** — Todos due on the current local date.
+- **Today** — what needs attention now: overdue todos (most overdue first) and todos due today, with a live count badge in the sidebar.
 - **Upcoming** — Todos due on future dates.
 - **Completed** — dedicated completed-Todo view.
 - **Notes** — separate view for reference material.
@@ -116,7 +116,7 @@ When the database is encrypted, nothing is readable until the password is entere
 - **Backup, export & import** — automatic daily snapshots, plus export to JSON, to Markdown (one file per item, works with Obsidian), or as a database copy. Import from JSON or a zip of Markdown files. See [Backups](#backups-and-export).
 - **Local-First Storage** — data is stored locally in SQLite.
 
-Date filtering uses the device's **local date/time**, rather than UTC.
+Date filtering uses the device's **local date/time**, rather than UTC (and the Today badge stays right when the date rolls over while the app is open).
 
 ---
 

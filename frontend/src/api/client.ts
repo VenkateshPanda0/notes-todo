@@ -1,3 +1,4 @@
+import { notifyItemsChanged } from "../lib/events";
 import type {
   AIAnswer,
   AIPlan,
@@ -55,6 +56,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     return undefined as T;
   }
   return (await response.json()) as T;
+}
+
+/** A write that changes items: same as request(), then tells the app that items changed. */
+async function mutate<T>(path: string, options: RequestInit): Promise<T> {
+  const result = await request<T>(path, options);
+  notifyItemsChanged();
+  return result;
 }
 
 // --- Auth / app lock -------------------------------------------------
@@ -129,23 +137,23 @@ export const itemsApi = {
       body: JSON.stringify({ text }),
     }),
   create: (payload: ItemCreatePayload) =>
-    request<Item>("/api/items", {
+    mutate<Item>("/api/items", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
   update: (id: number, payload: ItemUpdatePayload) =>
-    request<Item>(`/api/items/${id}`, {
+    mutate<Item>(`/api/items/${id}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     }),
   remove: (id: number) =>
-    request<void>(`/api/items/${id}`, { method: "DELETE" }),
+    mutate<void>(`/api/items/${id}`, { method: "DELETE" }),
   complete: (id: number) =>
-    request<Item>(`/api/items/${id}/complete`, { method: "POST" }),
+    mutate<Item>(`/api/items/${id}/complete`, { method: "POST" }),
   reopen: (id: number) =>
-    request<Item>(`/api/items/${id}/reopen`, { method: "POST" }),
+    mutate<Item>(`/api/items/${id}/reopen`, { method: "POST" }),
   convert: (id: number) =>
-    request<Item>(`/api/items/${id}/convert`, { method: "POST" }),
+    mutate<Item>(`/api/items/${id}/convert`, { method: "POST" }),
 };
 
 // --- Graph -------------------------------------------------------------
@@ -207,7 +215,7 @@ export const backupApi = {
   exportMarkdown: () => downloadFile("/api/backup/export.zip", "taskflow-markdown.zip"),
   downloadDatabase: () => downloadFile("/api/backup/database", "taskflow.db"),
   importFile: (file: File, mode: "merge" | "replace") =>
-    request<ImportResult>(`/api/backup/import?mode=${mode}`, { method: "POST", body: file }),
+    mutate<ImportResult>(`/api/backup/import?mode=${mode}`, { method: "POST", body: file }),
   auto: () => request<AutoBackupList>("/api/backup/auto"),
   runAuto: () => request<AutoBackupList>("/api/backup/auto/run", { method: "POST" }),
 };

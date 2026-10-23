@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { isToday, isUpcoming, localDateString } from "./dates";
+import { countDue, isOverdue, isToday, isUpcoming, localDateString } from "./dates";
 
 afterEach(() => {
   vi.useRealTimers();
@@ -63,5 +63,60 @@ describe("isToday / isUpcoming", () => {
   it("treats missing dates as neither today nor upcoming", () => {
     expect(isToday(null)).toBe(false);
     expect(isUpcoming(null)).toBe(false);
+  });
+});
+
+
+describe("isOverdue", () => {
+  it("is true only for dates strictly before today", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 21, 12));
+    expect(isOverdue("2026-10-20")).toBe(true);
+    expect(isOverdue("2025-01-01")).toBe(true);
+    expect(isOverdue("2026-10-21")).toBe(false);
+    expect(isOverdue("2026-10-22")).toBe(false);
+    expect(isOverdue(null)).toBe(false);
+  });
+
+  it("rolls over at midnight", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 21, 23, 59));
+    expect(isOverdue("2026-10-21")).toBe(false);
+    vi.setSystemTime(new Date(2026, 9, 22, 0, 1));
+    expect(isOverdue("2026-10-21")).toBe(true);
+  });
+});
+
+describe("countDue", () => {
+  const todo = (due_date: string | null, completed = false, type = "TODO") => ({ type, completed, due_date });
+
+  it("counts open todos due today and overdue ones separately", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 21, 12));
+
+    const counts = countDue([
+      todo("2026-10-21"),
+      todo("2026-10-21"),
+      todo("2026-10-20"),
+      todo("2026-09-01"),
+      todo("2026-10-22"), // upcoming: not counted
+      todo(null), // undated: not counted
+    ]);
+
+    expect(counts).toEqual({ today: 2, overdue: 2 });
+  });
+
+  it("ignores completed todos and notes", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 21, 12));
+
+    expect(countDue([todo("2026-10-21", true), todo("2026-10-20", true), todo("2026-10-21", false, "NOTE")])).toEqual({
+      today: 0,
+      overdue: 0,
+    });
+  });
+
+  it("handles an empty list", () => {
+    expect(countDue([])).toEqual({ today: 0, overdue: 0 });
   });
 });
